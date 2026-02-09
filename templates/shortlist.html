@@ -244,7 +244,7 @@
     <script>
         async function loadShortlist() {
             try {
-                const response = await fetch('/api/shortlist/all');
+                const response = await fetch('/api/shortlist/all?_=' + new Date().getTime());
                 const data = await response.json();
 
                 if (data.success && data.candidates.length > 0) {
