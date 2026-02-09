@@ -1027,42 +1027,64 @@ class ATSEngine:
         return f"{action_verb.capitalize()} {core_content}, resulting in [quantifiable impact]"
     
     def _suggest_skills_restructure(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Suggest skills section restructuring with gap filling"""
+        """Suggest skills section restructuring - only include existing skills, prioritize by JD relevance"""
         resume_skills = set(s.lower() for s in resume_data.get('skills', []))
         jd_mandatory = set(s.lower() for s in jd_data.get('mandatory_skills', []))
         jd_preferred = set(s.lower() for s in jd_data.get('preferred_skills', []))
         
+        # Only include skills the candidate ACTUALLY has
         matched_mandatory = list(resume_skills & jd_mandatory)
-        missing_mandatory = list(jd_mandatory - resume_skills)
-        
         matched_preferred = list(resume_skills & jd_preferred)
-        missing_preferred = list(jd_preferred - resume_skills)
-        
         other_skills = list(resume_skills - jd_mandatory - jd_preferred)
         
+        # Missing skills are for reference only, NOT added to resume
+        missing_mandatory = list(jd_mandatory - resume_skills)
+        missing_preferred = list(jd_preferred - resume_skills)
+        
         return {
-            'structure': 'Categorize skills by relevance',
+            'structure': 'Prioritize skills by JD relevance',
             'categories': {
-                'Core Technical Skills (Mandatory)': matched_mandatory + [f"{s}*" for s in missing_mandatory],
-                'Preferred Technical Stack': matched_preferred + [f"{s}*" for s in missing_preferred],
+                'Core Technical Skills': matched_mandatory,  # Only matched skills
+                'Additional Technical Skills': matched_preferred,  # Only matched skills
                 'Other Competencies': other_skills[:10]
             },
-            'note': 'Skills marked with (*) were added based on the Job Description. Please review and only keep those you have experience with.'
+            'missing_for_reference': {
+                'mandatory': missing_mandatory,
+                'preferred': missing_preferred
+            },
+            'note': 'Skills are reorganized to highlight JD-relevant competencies. Missing skills are noted separately for your review.'
         }
     
     def _suggest_summary_optimization(self, resume_data: Dict, jd_data: Dict) -> str:
-        """Suggest optimized professional summary targeting the JD"""
-        # Extract key elements
-        top_skills = jd_data.get('mandatory_skills', [])[:4]
-        experience_req = jd_data.get('experience_required', 'relevant')
-        role_type = jd_data.get('role_type', 'professional')
+        """Suggest optimized professional summary targeting the JD - concise and relevant"""
+        # Get original summary as base
+        original_summary = resume_data.get('summary', '')
         
-        # Construct optimized summary
+        # Extract key elements from JD
+        top_skills = jd_data.get('mandatory_skills', [])[:3]  # Only top 3 skills
+        experience_req = jd_data.get('experience_required', 'relevant')
+        
+        # If we have an original summary, enhance it with JD keywords
+        if original_summary and len(original_summary) > 20:
+            # Check which JD skills are already mentioned
+            mentioned_skills = [s for s in top_skills if s.lower() in original_summary.lower()]
+            missing_skills = [s for s in top_skills if s.lower() not in original_summary.lower()]
+            
+            # If original summary is good and mentions key skills, keep it
+            if len(mentioned_skills) >= 2:
+                return original_summary
+            
+            # Otherwise, enhance it slightly
+            if missing_skills:
+                skills_str = ', '.join([s.title() for s in missing_skills[:2]])
+                return f"{original_summary.rstrip('.')}. Proficient in {skills_str}."
+        
+        # If no good original summary, create a concise targeted one
         if not top_skills:
-            return resume_data.get('summary', '')
-
+            return original_summary or "Experienced professional seeking to contribute technical expertise and drive results."
+        
         skills_str = ', '.join([s.title() for s in top_skills])
-        return f"Dedicated {role_type.title()} with {experience_req} of experience specializing in {skills_str}. Proven track record of delivering high-impact solutions and optimizing workflows. Seeking to leverage technical expertise in {top_skills[0].title()} to drive results for your engineering team."
+        return f"Results-driven professional with {experience_req} of experience in {skills_str}. Proven ability to deliver high-quality solutions and collaborate effectively with cross-functional teams."
     
     def _suggest_title_alignment(self, resume_data: Dict, jd_data: Dict) -> List[str]:
         """Suggest job title alignment"""
@@ -1114,15 +1136,19 @@ class ATSEngine:
 {summary}"""
     
     def _format_skills(self, skills: List[str], restructure: Dict) -> str:
-        """Format skills section"""
+        """Format skills section - only include actual candidate skills"""
         formatted = "TECHNICAL SKILLS\n"
         
         if 'categories' in restructure:
             for category, skill_list in restructure['categories'].items():
-                if skill_list:
+                if skill_list:  # Only show categories with actual skills
                     formatted += f"\n{category}:\n"
-                    formatted += ', '.join(skill_list) + "\n"
+                    # Filter out any skills marked with asterisk (shouldn't happen now, but safety check)
+                    actual_skills = [s for s in skill_list if not s.endswith('*')]
+                    if actual_skills:
+                        formatted += ', '.join(actual_skills) + "\n"
         else:
+            # Fallback to simple list
             formatted += ', '.join(skills)
         
         return formatted

@@ -698,11 +698,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `ATS_Report_${new Date().getTime()}.txt`;
+                a.download = `ATS_Report_${new Date().getTime()}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                geminiTalk("Report downloaded! You're ready for the big leagues. 📄⭐");
+                geminiTalk("PDF Report downloaded! You're ready for the big leagues. 📄⭐");
             } catch (e) {
                 alert("Download failed. The server might be shy. 🙈");
             }
@@ -722,11 +722,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = `Optimized_Resume_${new Date().getTime()}.txt`;
+                a.download = `Optimized_Resume_${new Date().getTime()}.pdf`;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
-                geminiTalk("Optimized resume exported! Go get 'em, tiger! 🐯🚀");
+                geminiTalk("Optimized resume exported as PDF! Go get 'em, tiger! 🐯🚀");
             } catch (e) {
                 alert("Export failed. Let's try manual copy-paste? 📋");
             }

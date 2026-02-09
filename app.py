@@ -14,6 +14,7 @@ from datetime import datetime
 
 from ats_engine import ATSEngine
 from document_parser import DocumentParser
+from pdf_generator import PDFGenerator
 
 
 app = Flask(__name__)
@@ -23,6 +24,7 @@ app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 # Initialize ATS components
 ats_engine = ATSEngine()
 doc_parser = DocumentParser()
+pdf_generator = PDFGenerator()
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt'}
 
@@ -123,7 +125,7 @@ def analyze_resume():
 
 @app.route('/api/download-resume', methods=['POST'])
 def download_resume():
-    """Download optimized resume"""
+    """Download optimized resume as PDF"""
     try:
         data = request.get_json()
         resume_text = data.get('resume_text', '')
@@ -131,16 +133,14 @@ def download_resume():
         if not resume_text:
             return jsonify({'error': 'No resume text provided'}), 400
         
-        # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', encoding='utf-8')
-        temp_file.write(resume_text)
-        temp_file.close()
+        # Generate PDF
+        pdf_path = pdf_generator.generate_resume_pdf(resume_text)
         
         return send_file(
-            temp_file.name,
+            pdf_path,
             as_attachment=True,
-            download_name='optimized_resume.txt',
-            mimetype='text/plain'
+            download_name=f'Optimized_Resume_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf',
+            mimetype='application/pdf'
         )
     
     except Exception as e:
@@ -149,31 +149,18 @@ def download_resume():
 
 @app.route('/api/download-report', methods=['POST'])
 def download_report():
-    """Download full ATS report"""
+    """Download full ATS report as PDF"""
     try:
         data = request.get_json()
         
-        # Generate full report
-        report = ats_engine.generate_report(
-            data.get('resume_data', {}),
-            data.get('jd_data', {}),
-            data.get('score', {}), # Fixed: use 'score' instead of 'score_data'
-            data.get('gaps', {}),
-            data.get('improvements', {}),
-            data.get('optimized_resume', ''),
-            data.get('suitability', {})
-        )
-        
-        # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt', encoding='utf-8')
-        temp_file.write(report)
-        temp_file.close()
+        # Generate PDF report
+        pdf_path = pdf_generator.generate_report_pdf(data)
         
         return send_file(
-            temp_file.name,
+            pdf_path,
             as_attachment=True,
-            download_name='ats_report.txt',
-            mimetype='text/plain'
+            download_name=f'ATS_Report_{datetime.now().strftime("%Y%m%d_%H%M%S")}.pdf',
+            mimetype='application/pdf'
         )
     
     except Exception as e:
