@@ -484,6 +484,75 @@ def internal_error(error):
     return jsonify({'error': 'Internal server error'}), 500
 
 
+@app.route('/source')
+def sourcing_page():
+    """Render sourcing page"""
+    return render_template('sourcing.html')
+
+
+@app.route('/api/source/generate', methods=['POST'])
+def generate_sourcing():
+    """Generate sourcing strategies from JD"""
+    try:
+        data = request.get_json()
+        jd_text = data.get('jd_text', '')
+        
+        # Simple keyword extraction
+        import re
+        import urllib.parse
+        
+        words = re.findall(r'\b[A-Z][a-zA-Z]+\b', jd_text)
+        common = {'The', 'And', 'For', 'With', 'Job', 'Description', 'We', 'Are', 'You', 'Will', 'Work', 'Team', 'Role', 'This', 'Our', 'To', 'In', 'Of', 'Is', 'Be', 'Or', 'As', 'An', 'At', 'By', 'On', 'It', 'If'}
+        keywords = [w for w in words if w not in common and len(w) > 3]
+        unique_keywords = sorted(list(set(keywords)), key=lambda x: keywords.count(x), reverse=True)[:5]
+        
+        if not unique_keywords:
+            unique_keywords = ['Developer', 'Engineer', 'Software']
+            
+        keyword_str = " ".join([f'"{k}"' for k in unique_keywords])
+        
+        links = []
+        platforms = [
+            ('LinkedIn', f'site:linkedin.com/in/ {keyword_str}'),
+            ('GitHub', f'site:github.com {keyword_str}'),
+            ('Naukri', f'site:naukri.com {keyword_str}'),
+            ('StackOverflow', f'site:stackoverflow.com/users {keyword_str}')
+        ]
+        
+        for p, q in platforms:
+            url = f"https://www.google.com/search?q={urllib.parse.quote(q)}"
+            links.append({'platform': p, 'query': q, 'url': url})
+            
+        # Mock Candidates (Simulating Fetch)
+        mock_candidates = [
+            {
+                'name': 'Alex Rivera',
+                'title': f'Senior {unique_keywords[0]}',
+                'match_score': 95,
+                'skills': unique_keywords[:3],
+                'profile_url': links[0]['url']
+            },
+            {
+                'name': 'Sarah Chen',
+                'title': f'{unique_keywords[1] if len(unique_keywords)>1 else "Software"} Engineer',
+                'match_score': 88,
+                'skills': unique_keywords[1:4],
+                'profile_url': links[0]['url']
+            },
+            {
+                'name': 'James Wilson',
+                'title': 'Tech Lead',
+                'match_score': 82,
+                'skills': unique_keywords[:2],
+                'profile_url': links[0]['url']
+            }
+        ]
+        
+        return jsonify({'success': True, 'links': links, 'mock_candidates': mock_candidates})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     print("=" * 80)
     print("ATS Resume Scoring & Optimization Engine - Web Interface")

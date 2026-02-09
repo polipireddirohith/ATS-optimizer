@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS - AI Candidate Sourcing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <span style="font-size: 1.5rem;">⚙️</span>
+                <span class="sidebar-title">ATS Optimizer</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/" class="sidebar-link">
+                <span>📊</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="/bulk" class="sidebar-link">
+                <span>📁</span>
+                <span>Bulk Analysis</span>
+            </a>
+            <a href="/shortlist" class="sidebar-link">
+                <span>⭐</span>
+                <span>Shortlist</span>
+            </a>
+            <a href="/source" class="sidebar-link active special">
+                <span>🔍</span>
+                <span>Source Talent</span>
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div
+                style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: rgba(34, 197, 94, 0.1); border-radius: 8px; border: 1px solid rgba(34, 197, 94, 0.2);">
+                <span style="font-size: 1.2rem;">👔</span>
+                <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-purple);">HR Recruiter
+                    Mode</span>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="app-container">
+            <div class="dashboard-header" style="margin-bottom: 2rem;">
+                <h1>AI Candidate Sourcing</h1>
+                <p class="subtitle">Find top talent across the web matching your Job Description</p>
+            </div>
+
+            <div class="workspace-grid" style="grid-template-columns: 1fr;">
+                <!-- JD Input -->
+                <div class="workspace-card">
+                    <div class="card-header">
+                        <h3>Target Job Description</h3>
+                        <span class="badge">Required</span>
+                    </div>
+                    <div class="input-group">
+                        <textarea id="jdInput"
+                            placeholder="Paste the job description here (e.g., Python Developer with 5+ years experience...)"
+                            style="width: 100%; height: 150px; background: var(--bg-app); border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; color: var(--text-primary); resize: vertical;"></textarea>
+                    </div>
+                    <button class="btn-primary-full" id="sourceBtn" style="margin-top: 1rem;">
+                        Identify Talent Sources 🚀
+                    </button>
+                    <div id="loadingIndicator"
+                        style="display: none; justify-content: center; margin-top: 1rem; color: var(--text-muted);">
+                        <span>Scanning external networks... 📡</span>
+                    </div>
+                </div>
+
+                <!-- Results Area -->
+                <div id="resultsArea" style="display: none; gap: 2rem; display: grid;">
+
+                    <!-- Search Strategies -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>🌐 Advanced Resume Search (X-Ray)</h3>
+                        </div>
+                        <div class="info-body">
+                            <p>Direct links to pre-filtered candidates on major platforms:</p>
+                            <div class="feature-grid" id="searchLinksGrid">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Suggested Candidates (Mock) -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>🤖 AI Matched Profiles</h3>
+                            <span class="badge">Live Preview</span>
+                        </div>
+                        <div class="candidate-table">
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 1px solid var(--border-color);">
+                                        <th style="text-align: left; padding: 1rem;">Candidate Profile</th>
+                                        <th style="text-align: left; padding: 1rem;">Current Role</th>
+                                        <th style="text-align: left; padding: 1rem;">Match Score</th>
+                                        <th style="text-align: left; padding: 1rem;">Skills Match</th>
+                                        <th style="text-align: right; padding: 1rem;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mockCandidatesBody">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('sourceBtn').addEventListener('click', async () => {
+            const jdText = document.getElementById('jdInput').value;
+            if (!jdText) return alert("Please enter a Job Description.");
+
+            document.getElementById('loadingIndicator').style.display = 'flex';
+            document.getElementById('resultsArea').style.display = 'none';
+
+            try {
+                const response = await fetch('/api/source/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jd_text: jdText })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    renderLinks(data.links);
+                    renderMockCandidates(data.mock_candidates);
+                    document.getElementById('resultsArea').style.display = 'grid';
+                    document.getElementById('resultsArea').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (e) {
+                alert("Error generating sourcing strategies.");
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+            }
+        });
+
+        function renderLinks(links) {
+            const grid = document.getElementById('searchLinksGrid');
+            grid.innerHTML = links.map(link => `
+                <a href="${link.url}" target="_blank" class="feature-item" style="text-decoration: none; border: 1px solid var(--border-color); cursor: pointer; transition: transform 0.2s;">
+                    <strong style="color: var(--accent-teal);">${link.platform}</strong>
+                    <p style="font-size: 0.8rem; margin-top: 0.5rem; color: var(--text-secondary);">${link.query}</p>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--accent-purple);">Open Search ↗</div>
+                </a>
+            `).join('');
+        }
+
+        function renderMockCandidates(candidates) {
+            const tbody = document.getElementById('mockCandidatesBody');
+            tbody.innerHTML = candidates.map(c => `
+                <tr style="border-bottom: 1px solid var(--border-color);">
+                    <td style="padding: 1rem;">
+                        <strong>${c.name}</strong>
+                    </td>
+                    <td style="padding: 1rem; color: var(--text-muted);">${c.title}</td>
+                    <td style="padding: 1rem;">
+                        <span style="color: #22c55e; font-weight: 700;">${c.match_score}%</span>
+                    </td>
+                    <td style="padding: 1rem;">
+                        <div style="display: flex; gap: 0.25rem; flex-wrap: wrap;">
+                            ${c.skills.map(s => `<span style="font-size: 0.7rem; padding: 0.2rem 0.5rem; background: rgba(34,197,94,0.1); color: #22c55e; border-radius: 10px;">${s}</span>`).join('')}
+                        </div>
+                    </td>
+                    <td style="padding: 1rem; text-align: right;">
+                         <button class="btn-small" onclick="window.open('${c.profile_url}', '_blank')">View Profile</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+    </script>
+</body>
+
+</html>
