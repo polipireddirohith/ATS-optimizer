@@ -141,6 +141,12 @@ class ATSEngine:
             'prince2', 'safe', 'togaf', 'cism', 'cisa'
         ]
 
+        self.education_levels = {
+            'phd': ['phd', 'doctorate', 'ph.d'],
+            'master': ['master', 'ms', 'm.s', 'mtech', 'm.tech', 'mba', 'm.b.a', 'ma', 'm.a'],
+            'bachelor': ['bachelor', 'bs', 'b.s', 'btech', 'b.tech', 'be', 'b.e', 'ba', 'b.a', 'undergraduate']
+        }
+
     def _load_universal_skills(self):
         """Load expanded skill database from JSON"""
         try:
@@ -214,6 +220,7 @@ class ATSEngine:
             'responsibilities': self._extract_responsibilities(jd_text),
             'domain_keywords': self._extract_domain_keywords(jd_text),
             'required_certifications': self._extract_required_certifications(jd_text),
+            'education_required': self._extract_education_requirement(jd_text),
             'action_verbs': self._extract_action_verbs_from_jd(jd_text),
             'weighted_keywords': self._assign_keyword_weights(jd_text)
         }
@@ -289,6 +296,21 @@ class ATSEngine:
                     matched_certs.append(rc)
             insights.append(f"Certifications: {len(matched_certs)}/{len(req_certs)} required certificates found.")
             
+        # 5. Education Check
+        req_edu = jd_data.get('education_required', 'Not specified')
+        resume_edu = " ".join(resume_data.get('education', [])).lower()
+        edu_match = False
+        if req_edu != 'Not specified':
+            # Check if any variant of the required level is in resume
+            for level, keywords in self.education_levels.items():
+                if level == req_edu.lower():
+                    if any(re.search(r'\b' + re.escape(kw) + r'\b', resume_edu) for kw in keywords):
+                        edu_match = True
+                        break
+            insights.append(f"Education: {'Matches' if edu_match else 'Does not explicitly match'} ({req_edu} required).")
+        else:
+            insights.append("Education: No specific degree requirement detected in JD.")
+            
         return {
             'verdict': verdict,
             'color': color,
@@ -303,7 +325,10 @@ class ATSEngine:
             'experience_summary': self._extract_relevant_experience_snippets(resume_data, jd_data),
             'work_history': resume_data.get('experience', []),  # Full history for HR
             'matched_certifications': matched_certs,
-            'missing_certifications': list(set(req_certs) - set(matched_certs))
+            'missing_certifications': list(set(req_certs) - set(matched_certs)),
+            'education_match': edu_match,
+            'education_required': req_edu,
+            'resume_education': resume_data.get('education', [])
         }
 
     def calculate_ats_score(self, resume_data: Dict, jd_data: Dict) -> Dict:
@@ -846,6 +871,20 @@ class ATSEngine:
                 found_certs.append(cert.upper())
                 
         return list(set(found_certs))
+
+    def _extract_education_requirement(self, jd_text: str) -> str:
+        """Extract minimum education level required by JD"""
+        jd_lower = jd_text.lower()
+        
+        # Check in order of priority (PhD > Master > Bachelor)
+        if any(re.search(r'\b' + re.escape(kw) + r'\b', jd_lower) for kw in self.education_levels['phd']):
+            return "PhD"
+        if any(re.search(r'\b' + re.escape(kw) + r'\b', jd_lower) for kw in self.education_levels['master']):
+            return "Master"
+        if any(re.search(r'\b' + re.escape(kw) + r'\b', jd_lower) for kw in self.education_levels['bachelor']):
+            return "Bachelor"
+            
+        return "Not specified"
     
     def _extract_action_verbs_from_jd(self, jd_text: str) -> List[str]:
         """Extract action verbs from JD"""

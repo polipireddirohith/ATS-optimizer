@@ -465,6 +465,17 @@ document.addEventListener('DOMContentLoaded', () => {
             hrHtml += `</div></div>`;
         }
 
+        // Education Matrix
+        if (data.suitability.education_required !== 'Not specified') {
+            const eduClass = data.suitability.education_match ? 'valid' : 'missing';
+            const eduIcon = data.suitability.education_match ? '🎓' : '📚';
+            hrHtml += `<div class="hr-section"><h5>Academic Requirement</h5><div class="skill-tags ${eduClass}">`;
+            hrHtml += `<span>${eduIcon} Required: ${data.suitability.education_required}</span>`;
+            hrHtml += `</div><div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-secondary);">Found: ${data.suitability.resume_education.join(', ') || 'None detected'}</div></div>`;
+        } else {
+            hrHtml += `<div class="hr-section"><h5>Academic Background</h5><div style="font-size:0.75rem; color:var(--text-secondary);">${data.suitability.resume_education.join(', ') || 'No specific education detected'}</div></div>`;
+        }
+
         // Experience Evidence
         if (data.suitability.experience_summary && data.suitability.experience_summary.length > 0) {
             hrHtml += `<div class="hr-section"><h5>Relevant Evidence Snippets</h5><ul>`;
