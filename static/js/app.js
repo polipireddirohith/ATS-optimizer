@@ -720,11 +720,40 @@ document.addEventListener('DOMContentLoaded', () => {
     // ==================== UI Effects ====================
 
     function geminiTalk(message, duration = 3000) {
-        const aiCompanion = document.getElementById('aiCompanion');
-        const aiStatusText = aiCompanion.querySelector('.status-bubble');
-        aiStatusText.textContent = message;
-        aiCompanion.classList.add('talking');
-        setTimeout(() => aiCompanion.classList.remove('talking'), duration);
+        let toast = document.getElementById('notification-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'notification-toast';
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 2rem;
+                right: 2rem;
+                background: #1e293b;
+                border: 1px solid #14b8a6;
+                color: #f1f5f9;
+                padding: 1rem 1.5rem;
+                border-radius: 8px;
+                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+                z-index: 10000;
+                font-weight: 500;
+                transition: opacity 0.3s ease;
+                opacity: 0;
+            `;
+            document.body.appendChild(toast);
+        }
+
+        toast.textContent = message;
+        toast.style.display = 'block';
+        // Force reflow
+        void toast.offsetWidth;
+        toast.style.opacity = '1';
+
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 300);
+        }, duration);
     }
 
     function triggerConfetti() {
