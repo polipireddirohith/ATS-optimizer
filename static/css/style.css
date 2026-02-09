@@ -1303,10 +1303,118 @@ body.role-hr .ai-companion {
     border: 1px solid #fdba74;
 }
 
+/* HR Contact Details Inline */
+.contact-details-inline {
+    background: var(--bg-app);
+    border: 1px solid var(--accent-teal);
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    animation: slideInUp 0.3s ease-out;
+}
+
+.c-row.name {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.c-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.c-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+}
+
+.c-item .label {
+    color: var(--text-muted);
+}
+
+.c-item .value {
+    color: var(--text-primary);
+    font-weight: 500;
+    text-align: right;
+}
+
+.c-item .value a {
+    color: var(--accent-teal);
+    text-decoration: none;
+}
+
 .vis-visible {
     background: #dcfce7;
     color: #15803d;
     border: 1px solid #86efac;
+}
+
+/* Enhanced HR View Styling */
+.hr-section {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.hr-section h5 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+    font-weight: 700;
+}
+
+.skill-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.skill-tags span {
+    padding: 0.35rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.skill-tags.valid span {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.skill-tags.missing span {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.hr-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.hr-section ul li {
+    position: relative;
+    padding-left: 1rem;
+    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    font-style: italic;
+    border-left: 2px solid var(--accent-color);
+    background: var(--bg-app);
+    padding: 0.5rem 0.5rem 0.5rem 1rem;
+    border-radius: 0 4px 4px 0;
 }
 
 .theme-toggle-btn {

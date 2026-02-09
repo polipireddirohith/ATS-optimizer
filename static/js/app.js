@@ -317,18 +317,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const vis = data.visibility_status || (data.score && data.score.visibility_status);
         if (!vis) return;
 
-        const msg = document.getElementById('hrVisibilityMsg');
-        const unlockBtn = document.getElementById('unlockBtn');
+        const contactInfoContainer = document.getElementById('hrContactInfo');
+
+        // Reset state
+        if (contactInfoContainer) contactInfoContainer.innerHTML = '';
+        unlockBtn.style.display = 'block';
+        unlockBtn.disabled = true;
 
         if (vis.contact_details_unlocked) {
-            msg.innerHTML = `<span class="vis-visible">✅ Recruiter Ready</span> Contact details unlocked.`;
-            unlockBtn.disabled = false;
+            msg.innerHTML = `<span class="vis-visible">✅ Perfect Match</span> Candidate details available.`;
+            unlockBtn.style.display = 'none'; // Hide unlock button since we show it directly
+
+            // Auto-show Contact Details
+            if (contactInfoContainer) {
+                const contact = data.resume_data.contact_info;
+                contactInfoContainer.innerHTML = `
+                    <div class="contact-details-inline">
+                        <div class="c-row name">${contact.name}</div>
+                        <div class="c-grid">
+                            <div class="c-item">
+                                <span class="label">Email</span>
+                                <span class="value"><a href="mailto:${contact.email}">${contact.email || 'N/A'}</a></span>
+                            </div>
+                            <div class="c-item">
+                                <span class="label">Phone</span>
+                                <span class="value">${contact.phone || 'N/A'}</span>
+                            </div>
+                            <div class="c-item">
+                                <span class="label">Location</span>
+                                <span class="value">${contact.location || 'N/A'}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
         } else if (vis.is_recruiter_visible) {
             msg.innerHTML = `<span class="vis-limited">⚠ Potential Match</span> Contact details hidden.`;
             if (vis.missing_mandatory && vis.missing_mandatory.length > 0) {
                 msg.innerHTML += `<div style="font-size:0.7rem; color: #c2410c; margin-top:0.25rem;">Missing: ${vis.missing_mandatory.join(', ')}</div>`;
             }
             unlockBtn.disabled = true;
+            unlockBtn.textContent = "Unlock (Score too low)";
         } else {
             msg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
             unlockBtn.disabled = true;
@@ -386,11 +415,41 @@ document.addEventListener('DOMContentLoaded', () => {
             data.score.breakdown.skills_match.missing.forEach(skill => addKeywordPill(skill, 'missing'));
         }
 
-        // 4. Suitability
+        // 4. Suitability - ENHANCED HR VIEW
         suitabilityVerdict.textContent = data.suitability.verdict;
         suitabilityVerdict.style.color = data.suitability.color;
         suitabilityRecommendation.textContent = data.suitability.recommendation;
-        recruiterInsights.innerHTML = data.suitability.recruiter_insights.map(i => `<div class="insight-item">${i}</div>`).join('');
+
+        // Build comprehensive HR report
+        let hrHtml = `<div class="insight-list">`;
+
+        // Insights
+        data.suitability.recruiter_insights.forEach(i => {
+            hrHtml += `<div class="insight-item"><span class="icon">💡</span> ${i}</div>`;
+        });
+
+        // Skills Matrix
+        if (data.suitability.matched_skills && data.suitability.matched_skills.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Matched Skills (Verified)</h5><div class="skill-tags valid">`;
+            data.suitability.matched_skills.forEach(s => hrHtml += `<span>✓ ${s}</span>`);
+            hrHtml += `</div></div>`;
+        }
+
+        if (data.suitability.missing_skills && data.suitability.missing_skills.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Missing Critical Skills</h5><div class="skill-tags missing">`;
+            data.suitability.missing_skills.forEach(s => hrHtml += `<span>✗ ${s}</span>`);
+            hrHtml += `</div></div>`;
+        }
+
+        // Experience Evidence
+        if (data.suitability.experience_summary && data.suitability.experience_summary.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Contextual Evidence</h5><ul>`;
+            data.suitability.experience_summary.forEach(snip => hrHtml += `<li>"${snip}"</li>`);
+            hrHtml += `</ul></div>`;
+        }
+
+        hrHtml += `</div>`;
+        recruiterInsights.innerHTML = hrHtml;
 
         // 5. Editor & Comprehensive Improvements
         optimizedResume.innerText = data.optimized_resume;

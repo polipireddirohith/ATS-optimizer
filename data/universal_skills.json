@@ -1,0 +1,68 @@
+{
+    "_README": "Generated Universal Skill Map for ATS. Modify or expand any category.",
+    "healthcare": [
+        "nursing", "patient care", "triage", "medication administration", "iv therapy", "phlebotomy", "vital signs",
+        "emergency care", "cpr", "bls", "acls", "clinical documentation", "hipaa", "diagnosis codes", "medical terminology",
+        "medical billing", "icd-10", "cpt coding", "electronic health records", "ehr", "emr", "epic", "cerner", "meditech",
+        "radiology", "ultrasound", "sonography", "occupational therapy", "physical therapy", "surgical assisting",
+        "pharmacology", "dispensing", "compounding", "mental health", "counseling", "psychology", "social work", "case management"
+    ],
+    "finance_accounting": [
+        "financial analysis", "financial reporting", "budgeting", "forecasting", "variance analysis", "gaap", "ifrs",
+        "accounts payable", "accounts receivable", "reconciliation", "general ledger", "bookkeeping", "payroll", "tax compliance",
+        "auditing", "compliance", "risk management", "internal controls", "sarbanes-oxley", "sox", "financial modeling",
+        "valuation", "mergers and acquisitions", "m&a", "investment banking", "asset management", "portfolio management",
+        "excel", "vba", "sap", "oracle financials", "quickbooks", "xero", "netsuite", "thomson reuters", "bloomberg terminal"
+    ],
+    "sales_marketing": [
+        "sale strategy", "lead generation", "prospecting", "cold calling", "negotiation", "account management", "client relations",
+        "crm", "salesforce", "hubspot", "customer service", "inside sales", "business development", "key account management",
+        "digital marketing", "seo", "sem", "content marketing", "social media marketing", "email marketing", "mailchimp",
+        "google ads", "facebook ads", "ppc", "market research", "brand management", "public relations", "copywriting",
+        "event planning", "google analytics", "tableau", "marketing automation", "marketo", "pardot"
+    ],
+    "human_resources": [
+        "recruitment", "talent acquisition", "sourcing", "interviewing", "onboarding", "employee relations", "performance management",
+        "compensation and benefits", "payroll administration", "hris", "workday", "bamboo hr", "adp", "kronos", "compliance",
+        "labor laws", "eeoc", "fmla", "osha", "training and development", "organizational development", "succession planning",
+        "diversity and inclusion", "employee engagement", "contract negotiation", "policy development"
+    ],
+    "administrative": [
+        "calendar management", "schedule coordination", "meeting planning", "travel arrangements", "expense reporting",
+        "data entry", "record keeping", "proofreading", "editing", "customer support", "reception", "office management",
+        "microsoft office", "word", "excel", "powerpoint", "outlook", "google workspace", "zoom", "teams", "slack",
+        "executive support", "confidentiality", "transcription", "typing"
+    ],
+    "legal": [
+        "legal research", "legal writing", "case management", "litigation support", "contract law", "corporate law",
+        "intellectual property", "family law", "criminal law", "real estate law", "employment law", "drafting motions",
+        "pleadings", "discovery", "due diligence", "westlaw", "lexisnexis", "clio", "notary public", "mediation", "arbitration"
+    ],
+    "construction_trades": [
+        "blueprints", "schematics", "construction management", "project estimation", "building codes", "osha safety",
+        "carpentry", "framing", "drywall", "painting", "plumbing", "electrical wiring", "hvac installation", "welding",
+        "heavy equipment operation", "site supervision", "quality control", "material procurement", "autocad", "revit",
+        "procore", "primavera p6", "forklift operation", "site safety"
+    ],
+    "education": [
+        "curriculum development", "lesson planning", "classroom management", "instructional design", "student assessment",
+        "special education", "iep", "standardized testing", "differentiated instruction", "e-learning", "lms", "moodle",
+        "canvas", "blackboard", "teaching", "tutoring", "mentoring", "academic advising", "research", "grant writing", "publication"
+    ],
+    "logistics_supply_chain": [
+        "supply chain management", "inventory management", "warehouse operations", "shipping and receiving", "procurement",
+        "purchasing", "vendor management", "freight forwarding", "import/export", "customs compliance", "lean six sigma",
+        "kaizen", "erp", "sap", "oracle scm", "wms", "transportation management", "fleet management", "route planning",
+        "demand planning", "forecasting"
+    ],
+    "creative_arts": [
+        "graphic design", "adobe creative suite", "photoshop", "illustrator", "indesign", "after effects", "premiere pro",
+        "video editing", "photography", "videography", "ui/ux design", "figma", "sketch", "protoyping", "wireframing",
+        "copywriting", "creative writing", "blogging", "journalism", "content creation", "animation", "3d modeling", "blender", "maya"
+    ],
+    "science_biotech": [
+        "laboratory skills", "pipetting", "pcr", "gel electrophoresis", "microscopy", "cell culture", "elisa", "hplc", "gc-ms",
+        "spectroscopy", "titration", "quality control", "quality assurance", "gmp", "glp", "fda regulations", "clinical trials",
+        "data analysis", "scientific writing", "molecular biology", "genetics", "chemistry", "biochemistry", "microbiology"
+    ]
+}

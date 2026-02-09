@@ -52,14 +52,26 @@ class ATSEngine:
         }
         
         self.skill_categories = {
-            'frontend': ['react', 'angular', 'vue', 'nextjs', 'typescript', 'javascript', 'html', 'css', 'sass', 'tailwind', 'redux', 'webpack'],
-            'backend': ['python', 'java', 'node.js', 'go', 'ruby', 'php', 'rust', 'flask', 'django', 'spring', 'express', 'laravel'],
-            'database': ['sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'cassandra', 'dynamodb', 'oracle'],
-            'cloud_devops': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'github', 'terraform', 'ansible', 'prometheus', 'grafana', 'ci/cd', 'pipelines'],
-            'data_science': ['pandas', 'numpy', 'scipy', 'scikit-learn', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'data mining', 'tableau', 'powerbi', 'regression', 'classification', 'time-series', 'forecasting', 'lstm', 'hyperparameter', 'cross-validation', 'feature engineering', 'eda', 'machine learning', 'deep learning', 'artificial intelligence', 'ai', 'ml'],
-            'mobile': ['react native', 'flutter', 'swift', 'kotlin', 'objective-c', 'ios', 'android'],
-            'professional': ['agile', 'scrum', 'jira', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork', 'collaboration']
+            'frontend': ['react', 'angular', 'vue', 'nextjs', 'typescript', 'javascript', 'html', 'css', 'sass', 'tailwind', 'redux', 'webpack', 'jquery', 'bootstrap', 'material-ui', 'three.js'],
+            'backend': ['python', 'java', 'node.js', 'go', 'golang', 'ruby', 'php', 'rust', 'c#', 'c++', '.net', 'flask', 'django', 'spring', 'express', 'laravel', 'fastapi', 'rails', 'scala', 'kotlin'],
+            'database': ['sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'cassandra', 'dynamodb', 'oracle', 'sqlite', 'firestore', 'mariadb', 'neo4j'],
+            'cloud_devops': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'github', 'gitlab', 'terraform', 'ansible', 'circleci', 'travis', 'prometheus', 'grafana', 'datadog', 'elk', 'pl/sql', 'bash', 'shell', 'linux', 'unix'],
+            'data_science': ['pandas', 'numpy', 'scipy', 'scikit-learn', 'tensorflow', 'pytorch', 'keras', 'nlp', 'computer vision', 'data mining', 'tableau', 'powerbi', 'regression', 'classification', 'clustering', 'big data', 'hadoop', 'spark', 'kafka', 'airflow', 'etl', 'machine learning', 'deep learning', 'ai', 'ml', 'genai', 'llm', 'rag'],
+            'mobile': ['react native', 'flutter', 'swift', 'kotlin', 'objective-c', 'ios', 'android', 'xamarin', 'ionic', 'dart'],
+            
+            # --- NON-CS ENGINEERING DOMAINS ---
+            'mechanical': ['autocad', 'solidworks', 'catia', 'ansys', 'creo', 'pro/engineer', 'fusion 360', 'inventor', 'cae', 'cam', 'cnc', 'gd&t', 'hvac', 'thermodynamics', 'fluid mechanics', 'heat transfer', 'fea', 'cfd', 'robotics', 'mechatronics', 'matlab', 'simulink', 'six sigma', 'lean manufacturing', 'abaqus', 'hypermesh'],
+            'electrical': ['matlab', 'simulink', 'pspice', 'multisim', 'etap', 'labview', 'plc', 'scada', 'verilog', 'vhdl', 'fpga', 'microcontrollers', 'arduino', 'raspberry pi', 'pcb design', 'altium', 'eagle', 'kicad', 'embedded systems', 'iot', 'signal processing', 'control systems'],
+            'civil': ['autocad', 'civil 3d', 'revit', 'staad.pro', 'etabs', 'sap2000', 'primavera', 'ms project', 'bim', 'gis', 'arcgis', 'structural analysis', 'surveying', 'estimation', 'concrete', 'steel structures', 'geotechnical'],
+            
+            # --- BUSINESS & GENERAL ---
+            'business': ['salesforce', 'hubspot', 'crm', 'seo', 'sem', 'google analytics', 'excel', 'powerpoint', 'tableau', 'financial analysis', 'accounting', 'marketing', 'sales', 'business development', 'strategy', 'operations', 'supply chain', 'logistics', 'hr', 'recruitment'],
+            
+            'professional': ['agile', 'scrum', 'kanban', 'jira', 'confluence', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork', 'collaboration', 'stakeholder management', 'sdlc', 'waterfall', 'critical thinking', 'time management']
         }
+        
+        # Load Universal Skills Database if available
+        self._load_universal_skills()
 
         self.synonym_map = {
             'ml': 'machine learning',
@@ -68,7 +80,11 @@ class ATSEngine:
             'js': 'javascript',
             'ts': 'typescript',
             'reactjs': 'react',
+            'react.js': 'react',
+            'vuejs': 'vue',
+            'vue.js': 'vue',
             'nodejs': 'node.js',
+            'node': 'node.js',
             'nlp': 'natural language processing',
             'cv': 'computer vision',
             'aws': 'amazon web services',
@@ -83,8 +99,58 @@ class ATSEngine:
             'cicd': 'continuous integration',
             'k8s': 'kubernetes',
             'qa': 'quality assurance',
-            'seo': 'search engine optimization'
+            'seo': 'search engine optimization',
+            'golang': 'go',
+            'cpp': 'c++',
+            'cplusplus': 'c++',
+            'csharp': 'c#',
+            'dotnet': '.net',
+            'fe': 'frontend',
+            'be': 'backend',
+            'fs': 'fullstack',
+            
+            # Engineering Synonyms
+            'cad': 'computer aided design',
+            'cam': 'computer aided manufacturing',
+            'cae': 'computer aided engineering',
+            'fea': 'finite element analysis',
+            'cfd': 'computational fluid dynamics',
+            'gd&t': 'geometric dimensioning and tolerancing',
+            'hvac': 'heating ventilation and air conditioning',
+            'bms': 'building management system',
+            'plc': 'programmable logic controller',
+            'scada': 'supervisory control and data acquisition',
+            'pcb': 'printed circuit board',
+            'vlsi': 'very large scale integration',
+            'bim': 'building information modeling',
+            'mep': 'mechanical electrical plumbing',
+            'bim': 'building information modeling',
+            'mep': 'mechanical electrical plumbing',
+            'iot': 'internet of things'
         }
+
+    def _load_universal_skills(self):
+        """Load expanded skill database from JSON"""
+        try:
+            db_path = os.path.join(os.path.dirname(__file__), 'data', 'universal_skills.json')
+            if os.path.exists(db_path):
+                with open(db_path, 'r', encoding='utf-8') as f:
+                    extra_skills = json.load(f)
+                    
+                for category, skills in extra_skills.items():
+                    if category.startswith('_'): continue
+                    
+                    if category in self.skill_categories:
+                        # Append unique new skills
+                        existing = set(self.skill_categories[category])
+                        new_skills = [s for s in skills if s not in existing]
+                        self.skill_categories[category].extend(new_skills)
+                    else:
+                        # Add new category
+                        self.skill_categories[category] = skills
+                # print("Universal Skills Database Loaded.")
+        except Exception as e:
+            print(f"Warning: Could not load universal skills database: {e}")
 
     def _normalize_skill(self, skill: str) -> str:
         """Normalize skill terms to standard canonical forms"""
@@ -206,7 +272,12 @@ class ATSEngine:
             'recommendation': recommendation,
             'recruiter_insights': insights,
             'risk_level': "Low" if score > 75 else ("Medium" if score > 50 else "High"),
-            'suitability_score': int(score)
+            'suitability_score': int(score),
+            
+            # --- EXTENDED DETAILS FOR HR DASHBOARD ---
+            'matched_skills': list(matched),
+            'missing_skills': list(mandatory - matched),
+            'experience_summary': self._extract_relevant_experience_snippets(resume_data, jd_data)
         }
 
     def calculate_ats_score(self, resume_data: Dict, jd_data: Dict) -> Dict:
@@ -400,6 +471,22 @@ class ATSEngine:
         
         return '\n\n'.join(optimized_sections)
     
+    def _extract_relevant_experience_snippets(self, resume_data: Dict, jd_data: Dict) -> List[str]:
+        """Extract short snippets from experience that match JD keywords (Evidence)"""
+        snippets = []
+        jd_keywords = set(jd_data['domain_keywords'][:10]) # Top 10 broad keywords
+        
+        for exp in resume_data['experience']:
+            header = exp.get('header', '')
+            for bullet in exp.get('bullets', []):
+                # If bullet contains a key JD keyword, add it
+                if any(k in bullet.lower() for k in jd_keywords):
+                    snippets.append(f"{header}: {bullet[:100]}...")
+                    if len(snippets) >= 3: break
+            if len(snippets) >= 3: break
+            
+        return snippets
+    
     # ==================== HELPER METHODS ====================
     
     def _extract_contact_info(self, text: str) -> Dict:
@@ -467,8 +554,14 @@ class ATSEngine:
         # 1. Direct Category Matching (High Precision)
         for cat, list_of_skills in self.skill_categories.items():
             for skill in list_of_skills:
-                # Use word boundaries to avoid partial matches (e.g., 'java' in 'javascript')
-                pattern = r'\b' + re.escape(skill) + r'\b'
+                # Handle special characters by NOT using strict word boundaries for them
+                if any(c in skill for c in ['+', '#', '.']):
+                    # For C++, C#, .NET etc - use lookbehind/lookahead for whitespace or start/end
+                    pattern = r'(?:^|[\s,;(\[])' + re.escape(skill) + r'(?:$|[\s,;)\].])'
+                else:
+                    # Standard word boundary for normal words
+                    pattern = r'\b' + re.escape(skill) + r'\b'
+                    
                 if re.search(pattern, text_lower):
                     skills.add(skill)
         
@@ -577,7 +670,11 @@ class ATSEngine:
         # Remove common words
         # Remove common words, handling compound terms like scikit-learn or ci/cd
         words = re.findall(r'\b[a-z]{2,}(?:[-/][a-z]{2,})*\b', text.lower())
-        keywords = [w for w in words if w not in self.stop_words]
+        keywords = set(w for w in words if w not in self.stop_words)
+        
+        # ALSO include any specific skills found (to ensure C++, C#, .NET aren't lost by regex)
+        found_skills = self._extract_skills(text)
+        keywords.update(found_skills)
         
         # Count frequency
         keyword_freq = Counter(keywords)
@@ -642,8 +739,11 @@ class ATSEngine:
         for i, line in enumerate(lines):
             line_lower = line.lower()
             if any(keyword in line_lower for keyword in mandatory_keywords):
+                # Check the current line first (e.g. "Must have Python")
+                skills.update(self._extract_skills_from_text(line))
+                
                 # We found a requirements header. Look at subsequent lines.
-                for offset in range(1, 15): # Look further ahead
+                for offset in range(1, 25): # Increased lookahead range
                     if i + offset >= len(lines): break
                     next_line = lines[i + offset].strip()
                     if not next_line: continue
@@ -666,6 +766,9 @@ class ATSEngine:
         for i, line in enumerate(lines):
             line_lower = line.lower()
             if any(keyword in line_lower for keyword in preferred_keywords):
+                # Check current line
+                skills.update(self._extract_skills_from_text(line))
+                
                 for offset in range(1, 10):
                     if i + offset >= len(lines): break
                     next_line = lines[i + offset].strip()

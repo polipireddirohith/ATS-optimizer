@@ -46,33 +46,36 @@ class DocumentParser:
         elif file_ext == '.txt':
             return self._parse_txt(file_path)
     
-    def _parse_pdf(self, file_path: str) -> str:
         """Parse PDF file"""
         try:
-            import PyPDF2
+            import pdfplumber
             
             text = []
-            with open(file_path, 'rb') as file:
-                pdf_reader = PyPDF2.PdfReader(file)
-                for page in pdf_reader.pages:
-                    text.append(page.extract_text())
+            with pdfplumber.open(file_path) as pdf:
+                for page in pdf.pages:
+                    extract = page.extract_text()
+                    if extract:
+                        text.append(extract)
             
             return '\n'.join(text)
         except ImportError:
-            print("PyPDF2 not installed. Attempting alternative method...")
+            print("pdfplumber not installed/failed. Attempting PyPDF2...")
             try:
-                import pdfplumber
+                import PyPDF2
                 
                 text = []
-                with pdfplumber.open(file_path) as pdf:
-                    for page in pdf.pages:
-                        text.append(page.extract_text())
+                with open(file_path, 'rb') as file:
+                    pdf_reader = PyPDF2.PdfReader(file)
+                    for page in pdf_reader.pages:
+                        extract = page.extract_text()
+                        if extract:
+                            text.append(extract)
                 
                 return '\n'.join(text)
             except ImportError:
                 raise ImportError(
-                    "PDF parsing requires PyPDF2 or pdfplumber. "
-                    "Install with: pip install PyPDF2 or pip install pdfplumber"
+                    "PDF parsing requires pdfplumber or PyPDF2. "
+                    "Install with: pip install pdfplumber PyPDF2"
                 )
     
     def _parse_docx(self, file_path: str) -> str:
