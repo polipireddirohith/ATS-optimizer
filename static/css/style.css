@@ -74,7 +74,8 @@ body {
     left: 0;
     width: 100%;
     height: 100%;
-    z-index: -1;
+    z-index: 0;
+    /* Changed from -1 to ensure it's above body background */
     pointer-events: none;
 }
 
@@ -121,7 +122,8 @@ body {
     filter: blur(80px);
     pointer-events: none;
     transform: translate(-50%, -50%);
-    z-index: -1;
+    z-index: 1;
+    /* Positive to stay above parent bg */
 }
 
 /* ==================== Moving Background Objects ==================== */
@@ -131,7 +133,7 @@ body {
     height: 500px;
     filter: blur(100px);
     opacity: 0.15;
-    z-index: -1;
+    z-index: 1;
     border-radius: 50%;
     pointer-events: none;
 }
@@ -179,9 +181,8 @@ body {
 }
 
 .floating-objects {
-    position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: 1;
     pointer-events: none;
 }
 
@@ -238,7 +239,7 @@ body {
 .particles {
     position: fixed;
     inset: 0;
-    z-index: -1;
+    z-index: 1;
     background-image: radial-gradient(circle, var(--text-muted) 1px, transparent 1px);
     background-size: 100px 100px;
     opacity: 0.05;
@@ -346,6 +347,9 @@ body {
     display: flex;
     flex: 1;
     padding-top: var(--navbar-height);
+    position: relative;
+    z-index: 10;
+    /* Elevated to stay above background visuals */
 }
 
 .nav-actions {
@@ -1422,10 +1426,18 @@ body {
     font-weight: 700;
 }
 
-[data-theme="midnight"] .workspace-card {
-    background: var(--bg-card);
+[data-theme="midnight"] .workspace-card,
+[data-theme="midnight"] .panel-card,
+[data-theme="midnight"] .analysis-summary>div {
+    background: rgba(21, 28, 47, 0.8) !important;
     border: 1px solid var(--border-color);
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.ai-companion {
+    z-index: 9999 !important;
+    /* Force to top */
 }
 
 /* Lottie Player Spacing */
