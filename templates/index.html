@@ -15,12 +15,6 @@
 </head>
 
 <body class="dashboard-layout">
-    <!-- Theme Switcher -->
-    <div class="theme-switcher">
-        <button class="theme-btn btn-default" data-set-theme="default" title="Light Mode"></button>
-        <button class="theme-btn btn-midnight" data-set-theme="midnight" title="Enterprise Dark"></button>
-    </div>
-
     <!-- Background Ornaments -->
     <div class="hero-visuals">
         <div class="bg-grid"></div>
@@ -63,6 +57,10 @@
                 <a href="#about">About</a>
             </div>
             <div class="nav-actions">
+                <div class="nav-theme-toggle">
+                    <button class="theme-toggle-btn" data-set-theme="default" title="Light Mode">☀️</button>
+                    <button class="theme-toggle-btn" data-set-theme="midnight" title="Enterprise Dark">🌙</button>
+                </div>
                 <button class="btn-primary-sm" onclick="document.getElementById('resumeFile').click()">
                     <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
                         <path
