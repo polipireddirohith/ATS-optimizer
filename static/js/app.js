@@ -281,8 +281,14 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingSection.style.display = 'none';
         resultsSection.style.display = 'grid';
 
+        // Gemini Response
+        const finalScore = Math.round(data.total_score || data.score.total_score);
+        if (finalScore > 80) geminiTalk(`WOW! ${finalScore}% match! You're a superstar! 🌟`);
+        else if (finalScore > 50) geminiTalk(`Solid match! Let's tweak it to perfection! 🛠️`);
+        else geminiTalk("A bit of work to do, but we'll get there! 🎯");
+
         // 1. Score Widget
-        const score = Math.round(data.score.total_score);
+        const score = finalScore;
         animateScore(score);
         updateScoreBadge(score);
 
@@ -397,12 +403,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     downloadReportBtn.addEventListener('click', async () => {
-        // Logic reused from previous implementation
         try {
             const res = await fetch('/api/download-report', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(window.lastData || {}) // Note: need to store lastData
+                body: JSON.stringify(window.lastData || {})
             });
             const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
@@ -412,6 +417,72 @@ document.addEventListener('DOMContentLoaded', () => {
             a.click();
         } catch (e) { alert('Report generation error.'); }
     });
+
+    // ==================== Gemini AI Interaction ====================
+    const aiCompanion = document.getElementById('aiCompanion');
+    const aiStatusText = aiCompanion.querySelector('.status-bubble');
+    let geminiTimeout;
+
+    function geminiTalk(message, duration = 3000) {
+        if (!aiCompanion) return;
+        clearTimeout(geminiTimeout);
+        aiStatusText.textContent = message;
+        aiCompanion.classList.add('talking');
+
+        geminiTimeout = setTimeout(() => {
+            aiCompanion.classList.remove('talking');
+        }, duration);
+    }
+
+    // Initial greeting
+    setTimeout(() => geminiTalk("Looking for a job? Let's optimize! 🚀"), 1500);
+
+    // React to file upload
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            geminiTalk("Awesome resume! Let's see those skills... 📄✨");
+            triggerSparkle();
+        }
+    });
+
+    // React to JD typing
+    jdInput.addEventListener('input', () => {
+        if (jdInput.value.length > 50 && jdInput.value.length < 55) {
+            geminiTalk("Reading the fine print... You've got this! 💪");
+        }
+    });
+
+    // React to analysis start
+    analyzeBtn.addEventListener('click', () => {
+        if (fileInput.files.length && jdInput.value.trim()) {
+            geminiTalk("Analysing... Gemini logic: ACTIVATED! 🧠⚡", 5000);
+        }
+    });
+
+    // Follow Cursor logic for AI Orb
+    document.addEventListener('mousemove', (e) => {
+        if (!aiCompanion) return;
+        const x = (e.clientX / window.innerWidth - 0.5) * 40;
+        const y = (e.clientY / window.innerHeight - 0.5) * 40;
+        aiCompanion.style.transform = `translate(${x}px, ${y}px)`;
+    });
+
+    function triggerSparkle() {
+        const dropZone = document.getElementById('dropArea');
+        const sparkle = document.createElement('div');
+        sparkle.className = 'sparkle-drop';
+        sparkle.innerHTML = '✨✨✨';
+        Object.assign(sparkle.style, {
+            left: '50%',
+            top: '50%',
+            fontSize: '3rem'
+        });
+        dropZone.appendChild(sparkle);
+        setTimeout(() => sparkle.remove(), 1000);
+    }
+
+    // Update Gemini on results - Logic moved into renderResults directly
+    // Logic was cleaned up here
 
     // ==================== Interactions ====================
     // Mouse Glow
