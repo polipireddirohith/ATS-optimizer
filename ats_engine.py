@@ -27,7 +27,18 @@ class ATSEngine:
         self.stop_words = {
             'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
             'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the',
-            'to', 'was', 'will', 'with', 'have', 'had', 'been', 'this', 'which'
+            'to', 'was', 'will', 'with', 'have', 'had', 'been', 'this', 'which',
+            'who', 'whom', 'whose', 'their', 'they', 'them', 'both', 'each',
+            'few', 'more', 'most', 'other', 'some', 'such', 'no', 'nor', 'not',
+            'only', 'own', 'same', 'so', 'than', 'too', 'very', 'can', 'just',
+            'should', 'now', 'about', 'across', 'after', 'against', 'along',
+            'among', 'around', 'because', 'before', 'behind', 'below', 'beneath',
+            'beside', 'between', 'beyond', 'but', 'concerning', 'despite',
+            'down', 'during', 'except', 'following', 'for', 'from', 'in',
+            'including', 'into', 'like', 'near', 'of', 'off', 'on', 'onto',
+            'out', 'over', 'past', 'plus', 'regarding', 'since', 'through',
+            'throughout', 'to', 'towards', 'under', 'until', 'up', 'upon',
+            'upon', 'with', 'within', 'without'
         }
         
         self.action_verbs = {
@@ -35,7 +46,19 @@ class ATSEngine:
             'designed', 'built', 'improved', 'increased', 'reduced', 'optimized',
             'delivered', 'launched', 'established', 'coordinated', 'executed',
             'analyzed', 'resolved', 'streamlined', 'automated', 'collaborated',
-            'spearheaded', 'orchestrated', 'pioneered', 'transformed', 'drove'
+            'spearheaded', 'orchestrated', 'pioneered', 'transformed', 'drove',
+            'architected', 'facilitated', 'modernized', 'overhauled', 'consolidated',
+            'mentored', 'authored', 'presented', 'negotiated', 'realigned'
+        }
+        
+        self.skill_categories = {
+            'frontend': ['react', 'angular', 'vue', 'nextjs', 'typescript', 'javascript', 'html', 'css', 'sass', 'tailwind', 'redux', 'webpack'],
+            'backend': ['python', 'java', 'node.js', 'go', 'ruby', 'php', 'rust', 'flask', 'django', 'spring', 'express', 'laravel'],
+            'database': ['sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'cassandra', 'dynamodb', 'oracle'],
+            'cloud_devops': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'terraform', 'ansible', 'prometheus', 'grafana'],
+            'data_science': ['pandas', 'numpy', 'scipy', 'scikit-learn', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'data mining', 'tableau', 'powerbi'],
+            'mobile': ['react native', 'flutter', 'swift', 'kotlin', 'objective-c', 'ios', 'android'],
+            'professional': ['agile', 'scrum', 'jira', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork']
         }
         
     def parse_resume(self, resume_text: str) -> Dict:
@@ -365,36 +388,34 @@ class ATSEngine:
         return ' '.join(summary_lines)
     
     def _extract_skills(self, text: str) -> List[str]:
-        """Extract skills from resume"""
-        skills_section = self._extract_section(text, ['skills', 'technical skills', 'core competencies'])
-        
-        # Common skill patterns
-        skill_patterns = [
-            r'\b(python|java|javascript|c\+\+|ruby|go|rust|scala|kotlin)\b',
-            r'\b(react|angular|vue|node\.?js|express|django|flask|spring)\b',
-            r'\b(aws|azure|gcp|docker|kubernetes|jenkins|git|ci/cd)\b',
-            r'\b(sql|nosql|mongodb|postgresql|mysql|redis|elasticsearch)\b',
-            r'\b(machine learning|deep learning|nlp|computer vision|ai)\b',
-            r'\b(agile|scrum|jira|confluence|leadership|communication)\b'
-        ]
-        
-        skills = set()
+        """Extract skills from text by category matching and section analysis"""
         text_lower = text.lower()
+        skills = set()
         
-        for pattern in skill_patterns:
-            matches = re.findall(pattern, text_lower, re.IGNORECASE)
-            skills.update(matches)
+        # 1. Direct Category Matching (High Precision)
+        for cat, list_of_skills in self.skill_categories.items():
+            for skill in list_of_skills:
+                # Use word boundaries to avoid partial matches (e.g., 'java' in 'javascript')
+                pattern = r'\b' + re.escape(skill) + r'\b'
+                if re.search(pattern, text_lower):
+                    skills.add(skill)
         
-        # Also extract from skills section
+        # 2. Section Based Extraction (High Recall)
+        skills_section = self._extract_section(text, ['skills', 'technical skills', 'core competencies', 'technologies'])
         if skills_section:
-            # Split by common delimiters
-            skill_items = re.split(r'[,;|\n•·]', skills_section)
-            for item in skill_items:
+            # Clean and split by common delimiters
+            # Handles bullets, commas, vertical bars, and newlines
+            raw_items = re.split(r'[,;|\n•·\t\*]| {2,}', skills_section)
+            for item in raw_items:
                 cleaned = item.strip().lower()
-                if cleaned and len(cleaned) > 2:
-                    skills.add(cleaned)
+                # Basic cleaning: remove trailing periods, brackets
+                cleaned = re.sub(r'[\.\:\(\)]', '', cleaned).strip()
+                if cleaned and 2 < len(cleaned) < 30:
+                    # Avoid adding junk (like long sentences)
+                    if len(cleaned.split()) <= 4:
+                        skills.add(cleaned)
         
-        return list(skills)
+        return sorted(list(skills))
     
     def _extract_experience(self, text: str) -> List[Dict]:
         """Extract work experience"""
@@ -540,36 +561,51 @@ class ATSEngine:
         return any(header in line_lower for header in common_headers) and len(line.strip()) < 50
     
     def _extract_mandatory_skills(self, jd_text: str) -> List[str]:
-        """Extract mandatory skills from JD"""
-        mandatory_keywords = ['required', 'must have', 'essential', 'mandatory']
-        skills = []
+        """Extract mandatory skills from JD with bullet point awareness"""
+        mandatory_keywords = ['required', 'must have', 'essential', 'mandatory', 'requirements']
+        skills = set()
         
         lines = jd_text.split('\n')
         for i, line in enumerate(lines):
-            if any(keyword in line.lower() for keyword in mandatory_keywords):
-                # Extract next few lines
-                context = ' '.join(lines[i:min(i+5, len(lines))])
-                skills.extend(self._extract_skills_from_text(context))
+            line_lower = line.lower()
+            if any(keyword in line_lower for keyword in mandatory_keywords):
+                # We found a requirements header. Look at subsequent lines.
+                for offset in range(1, 15): # Look further ahead
+                    if i + offset >= len(lines): break
+                    next_line = lines[i + offset].strip()
+                    if not next_line: continue
+                    
+                    # If we hit another major header, stop
+                    if self._is_section_header(next_line) and not any(k in next_line.lower() for k in mandatory_keywords):
+                        break
+                        
+                    # Extract skills from this specific line
+                    skills.update(self._extract_skills_from_text(next_line))
         
-        return list(set(skills))
-    
+        return list(skills)
+
     def _extract_preferred_skills(self, jd_text: str) -> List[str]:
-        """Extract preferred skills from JD"""
-        preferred_keywords = ['preferred', 'nice to have', 'bonus', 'plus']
-        skills = []
+        """Extract preferred skills from JD with bullet point awareness"""
+        preferred_keywords = ['preferred', 'nice to have', 'bonus', 'plus', 'desired']
+        skills = set()
         
         lines = jd_text.split('\n')
         for i, line in enumerate(lines):
-            if any(keyword in line.lower() for keyword in preferred_keywords):
-                context = ' '.join(lines[i:min(i+5, len(lines))])
-                skills.extend(self._extract_skills_from_text(context))
+            line_lower = line.lower()
+            if any(keyword in line_lower for keyword in preferred_keywords):
+                for offset in range(1, 10):
+                    if i + offset >= len(lines): break
+                    next_line = lines[i + offset].strip()
+                    if not next_line: continue
+                    if self._is_section_header(next_line): break
+                    skills.update(self._extract_skills_from_text(next_line))
         
-        return list(set(skills))
-    
+        return list(skills)
+
     def _extract_tools_technologies(self, jd_text: str) -> List[str]:
         """Extract tools and technologies from JD"""
         return self._extract_skills(jd_text)
-    
+
     def _extract_experience_requirement(self, jd_text: str) -> str:
         """Extract years of experience required"""
         exp_pattern = r'(\d+)\+?\s*(?:years?|yrs?)\s*(?:of)?\s*(?:experience)?'
@@ -630,72 +666,77 @@ class ATSEngine:
         return self._extract_skills(text)
     
     def _calculate_keyword_match(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate keyword match score"""
+        """Calculate weighted keyword match score"""
         resume_keywords = set(resume_data['keywords'])
-        jd_keywords = set(jd_data['domain_keywords'][:50])  # Top 50 JD keywords
+        jd_weighted = jd_data.get('weighted_keywords', {})
         
-        if not jd_keywords:
+        if not jd_weighted:
             return 100.0
         
-        matched = resume_keywords & jd_keywords
-        score = (len(matched) / len(jd_keywords)) * 100
+        max_score = sum(jd_weighted.values())
+        current_score = sum(weight for kw, weight in jd_weighted.items() if kw in resume_keywords)
         
+        score = (current_score / max_score) * 100
         return min(score, 100.0)
-    
+
     def _calculate_skills_match(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate skills match score"""
+        """Calculate skills match score with higher precision"""
         resume_skills = set(s.lower() for s in resume_data['skills'])
         
         mandatory_skills = set(s.lower() for s in jd_data['mandatory_skills'])
         preferred_skills = set(s.lower() for s in jd_data['preferred_skills'])
         
-        # Mandatory skills are critical
-        mandatory_matched = resume_skills & mandatory_skills
-        mandatory_score = (len(mandatory_matched) / len(mandatory_skills)) * 100 if mandatory_skills else 100
-        
-        # Preferred skills are bonus
-        preferred_matched = resume_skills & preferred_skills
-        preferred_score = (len(preferred_matched) / len(preferred_skills)) * 100 if preferred_skills else 100
-        
-        # Weighted average: 70% mandatory, 30% preferred
-        total_score = (mandatory_score * 0.7) + (preferred_score * 0.3)
+        # Mandatory skills (Critical)
+        if mandatory_skills:
+            mandatory_matched = resume_skills & mandatory_skills
+            mandatory_score = (len(mandatory_matched) / len(mandatory_skills)) * 100
+        else:
+            mandatory_score = 100.0
+            
+        # Preferred skills (Bonus)
+        if preferred_skills:
+            preferred_matched = resume_skills & preferred_skills
+            preferred_score = (len(preferred_matched) / len(preferred_skills)) * 100
+        else:
+            preferred_score = 100.0
+            
+        # Weighted average: 80% mandatory, 20% preferred
+        total_score = (mandatory_score * 0.8) + (preferred_score * 0.2)
         
         return min(total_score, 100.0)
-    
+
     def _calculate_experience_alignment(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate experience alignment score"""
-        # Simple heuristic: check if resume has experience section
+        """Calculate experience alignment based on duration and context"""
         if not resume_data['experience']:
-            return 50.0
+            return 0.0 # No experience section is a major penalty
         
-        # Check for relevant experience based on keywords
+        # Context match
         exp_text = ' '.join([exp.get('header', '') + ' ' + ' '.join(exp.get('bullets', [])) 
                             for exp in resume_data['experience']]).lower()
         
-        jd_keywords = set(jd_data['domain_keywords'][:30])
-        matched = sum(1 for keyword in jd_keywords if keyword in exp_text)
+        jd_keywords = set(jd_data['domain_keywords'][:20])
+        matched_keywords = sum(1 for kw in jd_keywords if kw in exp_text)
         
-        score = (matched / len(jd_keywords)) * 100 if jd_keywords else 75.0
+        context_score = (matched_keywords / len(jd_keywords)) * 100 if jd_keywords else 80.0
         
-        return min(score, 100.0)
-    
+        # Action verb density
+        resume_verbs = [v for v in self.action_verbs if v in exp_text]
+        verb_score = min((len(resume_verbs) / 10) * 100, 100.0)
+        
+        return (context_score * 0.7) + (verb_score * 0.3)
+
     def _calculate_domain_similarity(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate domain/role similarity score"""
-        # Check if resume mentions similar roles or domains
-        resume_text = ' '.join([
-            resume_data.get('summary', ''),
-            ' '.join([exp.get('header', '') for exp in resume_data['experience']])
-        ]).lower()
+        """Calculate semantic domain similarity"""
+        resume_text = (resume_data.get('summary', '') + ' ' + 
+                      ' '.join([exp.get('header', '') for exp in resume_data['experience']])).lower()
         
-        jd_text = ' '.join(jd_data['responsibilities']).lower()
-        
-        # Simple overlap check
-        resume_words = set(resume_text.split())
-        jd_words = set(jd_text.split())
-        
-        common_words = resume_words & jd_words - self.stop_words
-        
-        score = (len(common_words) / len(jd_words - self.stop_words)) * 100 if jd_words else 75.0
+        jd_keywords = set(jd_data['domain_keywords'])
+        if not jd_keywords:
+            return 100.0
+            
+        # Check for presence of key domain concepts
+        found = sum(1 for kw in jd_keywords if kw in resume_text)
+        score = (found / len(jd_keywords)) * 100
         
         return min(score, 100.0)
     
