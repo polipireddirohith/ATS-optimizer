@@ -281,11 +281,65 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== Results Rendering ====================
 
+    // ==================== Role Management ====================
+    window.setRole = function (role) {
+        document.body.classList.remove('role-candidate', 'role-hr');
+        document.body.classList.add(`role-${role}`);
+
+        // Update Buttons
+        document.querySelectorAll('.role-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.role === role);
+        });
+
+        // Toggle UI Elements
+        if (role === 'hr') {
+            document.body.classList.add('hr-mode');
+            geminiTalk("HR Mode Active. Viewing as Recruiter. 👔");
+            // Hide gamification, show professional controls
+            if (window.lastData) updateHrControls(window.lastData);
+        } else {
+            document.body.classList.remove('hr-mode');
+            geminiTalk("Candidate Mode. Let's optimize! 🚀");
+        }
+
+        localStorage.setItem('ats_role', role);
+    };
+
+    // Initialize Role
+    const savedRole = localStorage.getItem('ats_role') || 'candidate';
+    setRole(savedRole);
+
+    function updateHrControls(data) {
+        const controls = document.getElementById('hrControls');
+        if (!controls) return;
+
+        const { visibility_status } = data;
+        const msg = document.getElementById('hrVisibilityMsg');
+
+        if (visibility_status.is_recruiter_visible) {
+            msg.innerHTML = `<span class="vis-visible">✅ Recruiter Ready</span> Contact details unlocked.`;
+            document.getElementById('unlockBtn').disabled = false;
+        } else if (visibility_status.is_limited_visibility) {
+            msg.innerHTML = `<span class="vis-limited">⚠ Potential Match</span> Contact details hidden.`;
+            document.getElementById('unlockBtn').disabled = true;
+        } else {
+            msg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
+            document.getElementById('unlockBtn').disabled = true;
+        }
+    }
+
+    // ==================== Results Rendering ====================
+
     function renderResults(data) {
         loadingSection.style.display = 'none';
         resultsSection.style.display = 'grid';
 
         const finalScore = Math.round(data.total_score || data.score.total_score);
+
+        // Update HR Controls if in HR mode
+        if (document.body.classList.contains('role-hr')) {
+            updateHrControls(data);
+        }
 
         // 1. Score Widget Drama
         const scoreWidget = document.querySelector('.score-widget');
@@ -312,14 +366,18 @@ document.addEventListener('DOMContentLoaded', () => {
         Object.entries(data.score.breakdown).forEach(([key, val]) => {
             const row = document.createElement('div');
             row.className = 'breakdown-row';
-            row.innerHTML = `<span class="row-label">${key.replace(/_/g, ' ')}</span><span class="row-val">${val.score}%</span>`;
+            row.innerHTML = `<span class="row-label">${key.replace(/_/g, ' ')}</span><span class="row-val">${val.score} / 100</span>`;
             breakdownGrid.appendChild(row);
         });
 
         // 3. Keywords
         gapsContainer.innerHTML = '';
-        data.score.breakdown.skills_match.matched?.forEach(skill => addKeywordPill(skill, 'matched'));
-        data.gaps.critical.missing_mandatory_skills?.forEach(skill => addKeywordPill(skill, 'missing'));
+        if (data.score.breakdown.skills_match.matched) {
+            data.score.breakdown.skills_match.matched.forEach(skill => addKeywordPill(skill, 'matched'));
+        }
+        if (data.score.breakdown.skills_match.missing) {
+            data.score.breakdown.skills_match.missing.forEach(skill => addKeywordPill(skill, 'missing'));
+        }
 
         // 4. Suitability
         suitabilityVerdict.textContent = data.suitability.verdict;
@@ -329,11 +387,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 5. Editor
         optimizedResume.textContent = data.optimized_resume;
-        improvementsContainer.innerHTML = data.improvements.keyword_insertions.slice(0, 4).map(i => `
-            <div class="suggestion-card" onclick="this.style.opacity=0.5; this.style.pointerEvents='none';">
-                <strong>Add ${i.keyword}</strong> ${i.suggestion}
-            </div>
-        `).join('');
+        improvementsContainer.innerHTML = '';
+        if (data.improvements && data.improvements.keyword_insertions) {
+            improvementsContainer.innerHTML = data.improvements.keyword_insertions.slice(0, 4).map(i => `
+                <div class="suggestion-card" onclick="this.style.opacity=0.5; this.style.pointerEvents='none';">
+                    <strong>Add ${i.keyword}</strong> ${i.suggestion}
+                </div>
+            `).join('');
+        }
     }
 
     function addKeywordPill(text, type) {
@@ -367,6 +428,44 @@ document.addEventListener('DOMContentLoaded', () => {
         jdInput.value = '';
         window.scrollTo(0, 0);
     });
+
+    // ==================== HR Actions ====================
+    window.unlockContactDetails = function () {
+        if (!window.lastData || !window.lastData.resume_data) return alert("Analyze a resume first!");
+
+        const contact = window.lastData.resume_data.contact_info;
+        const infoHtml = `
+            <div class="contact-card-unlocked">
+                <h3>🔓 Candidate Contact Details</h3>
+                <p><strong>Name:</strong> ${contact.name}</p>
+                <p><strong>Email:</strong> ${contact.email || 'Not found'}</p>
+                <p><strong>Phone:</strong> ${contact.phone || 'Not found'}</p>
+                <p><strong>Location:</strong> ${contact.location || 'Not found'}</p>
+                <div style="margin-top:1rem; font-size:0.8rem; color:green;">
+                    Verified by ATS • High Match Score
+                </div>
+                <button onclick="document.body.removeChild(this.parentElement.parentElement)" 
+                        style="margin-top:1rem; width:100%; padding:0.5rem; background:#eee; border:none; border-radius:4px; cursor:pointer;">
+                    Close
+                </button>
+            </div>
+            <div class="modal-backdrop" onclick="this.remove(); document.querySelector('.contact-card-unlocked').remove()"></div>
+        `;
+
+        const div = document.createElement('div');
+        div.innerHTML = infoHtml;
+        document.body.appendChild(div);
+
+        // Disable button after unlock
+        document.getElementById('unlockBtn').textContent = "Details Unlocked ✅";
+        document.getElementById('unlockBtn').disabled = true;
+    };
+
+    // Bind Unlock Button
+    const unlockBtn = document.getElementById('unlockBtn');
+    if (unlockBtn) {
+        unlockBtn.addEventListener('click', window.unlockContactDetails);
+    }
 
     // ==================== UI Effects ====================
 

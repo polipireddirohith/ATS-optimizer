@@ -397,6 +397,7 @@ body {
 
 .sidebar-item svg {
     opacity: 0.6;
+    flex-shrink: 0;
 }
 
 .sidebar-item:hover {
@@ -411,6 +412,28 @@ body {
 
 .sidebar-item.active svg {
     opacity: 1;
+}
+
+@media screen and (max-width: 1024px) {
+    :root {
+        --sidebar-width: 80px;
+    }
+
+    .sidebar-item span,
+    .level-name,
+    .xp-text,
+    .level-badge {
+        display: none;
+    }
+
+    .sidebar-item {
+        justify-content: center;
+        padding: 0.75rem;
+    }
+
+    .ai-companion {
+        left: 1rem;
+    }
 }
 
 .sidebar-user-progress {
@@ -497,44 +520,6 @@ body {
     min-height: calc(100vh - var(--navbar-height));
 }
 
-/* Workspace Stack */
-.workspace-card-stack {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-
-.daily-challenge-card {
-    background: linear-gradient(135deg, #1e293b, #0f172a) !important;
-    border-color: var(--accent-color) !important;
-    position: relative;
-    padding: 1.25rem !important;
-}
-
-.xp-bonus {
-    background: rgba(0, 255, 204, 0.1);
-    color: var(--accent-teal);
-    font-size: 0.7rem;
-    font-weight: 800;
-    padding: 2px 8px;
-    border-radius: 4px;
-}
-
-#challengeText {
-    font-size: 0.85rem;
-    color: #e2e8f0;
-    margin: 0.75rem 0;
-}
-
-.challenge-progress-mini {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.7rem;
-    font-weight: 700;
-    color: #94a3b8;
-    text-transform: uppercase;
-}
 
 .progress-dot {
     width: 8px;
@@ -550,10 +535,16 @@ body {
 
 .workspace-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
     gap: 2rem;
     max-width: 1400px;
     animation: fadeIn 0.4s ease-out;
+}
+
+@media (max-width: 900px) {
+    .workspace-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .workspace-card {
@@ -714,6 +705,17 @@ body {
     gap: 2rem;
     max-width: 1600px;
     animation: slideUp 0.5s ease-out;
+}
+
+@media (max-width: 1100px) {
+    .results-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .analysis-summary {
+        position: relative !important;
+        top: 0 !important;
+    }
 }
 
 @keyframes slideUp {
@@ -1094,6 +1096,171 @@ body {
     border-radius: 8px;
     border: 1px solid var(--border-color);
     margin-right: 1rem;
+}
+
+
+/* Role Toggle Switch */
+.role-toggle-container {
+    display: flex;
+    background: var(--bg-app);
+    padding: 3px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-right: 1rem;
+    gap: 2px;
+}
+
+.role-btn {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.role-btn:hover {
+    color: var(--text-primary);
+}
+
+.role-btn.active {
+    background: var(--bg-card);
+    color: var(--accent-color);
+    font-weight: 700;
+    box-shadow: var(--shadow-sm);
+}
+
+[data-role="hr"].active {
+    color: var(--accent-teal);
+    /* Different color for HR mode confirmation */
+}
+
+/* Visibility Control Classes */
+body.role-candidate .hr-only {
+    display: none !important;
+}
+
+body.role-hr .candidate-only {
+    display: none !important;
+}
+
+/* HR Controls */
+.hr-controls {
+    display: none;
+    flex-direction: column !important;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+body.role-hr .hr-controls {
+    display: flex !important;
+}
+
+.hr-buttons {
+    display: grid;
+    gap: 0.75rem;
+    width: 100%;
+}
+
+.hr-status-msg {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Hide candidate-specific elements in HR mode */
+body.role-hr .achievements-widget,
+body.role-hr .daily-challenge-card,
+body.role-hr .xp-container,
+body.role-hr .ai-companion {
+    display: none !important;
+}
+
+.visibility-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: inline-block;
+    text-transform: uppercase;
+}
+
+/* Modal Styles for HR Unlock */
+.modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9998;
+    backdrop-filter: blur(2px);
+}
+
+.contact-card-unlocked {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    min-width: 300px;
+    border: 1px solid var(--accent-teal);
+    animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -40%) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.contact-card-unlocked h3 {
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.contact-card-unlocked p {
+    color: var(--text-secondary);
+    margin: 0.5rem 0;
+    font-size: 0.95rem;
+}
+
+.vis-hidden {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fca5a5;
+}
+
+.vis-limited {
+    background: #ffedd5;
+    color: #c2410c;
+    border: 1px solid #fdba74;
+}
+
+.vis-visible {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #86efac;
 }
 
 .theme-toggle-btn {

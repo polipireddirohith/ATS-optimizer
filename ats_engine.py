@@ -77,8 +77,22 @@ class ATSEngine:
             'rest': 'restful',
             'git': 'github',
             'eda': 'exploratory data analysis',
-            'api': 'application programming interface'
+            'api': 'application programming interface',
+            'dl': 'deep learning',
+            'ci/cd': 'continuous integration',
+            'cicd': 'continuous integration',
+            'k8s': 'kubernetes',
+            'qa': 'quality assurance',
+            'seo': 'search engine optimization'
         }
+
+    def _normalize_skill(self, skill: str) -> str:
+        """Normalize skill terms to standard canonical forms"""
+        skill_lower = skill.lower().strip()
+        # Direct lookup
+        if skill_lower in self.synonym_map:
+            return self.synonym_map[skill_lower]
+        return skill_lower
         
     def parse_resume(self, resume_text: str) -> Dict:
         """
@@ -141,23 +155,27 @@ class ATSEngine:
         """
         score = score_data['total_score']
         
-        # Determine verdict
-        if score >= 85:
-            verdict = "ATS Overlord Approved"
-            color = "var(--accent-teal)" 
-            recommendation = "Shortlist immediately! This resume is basically a recruitment cheat code. 🚀"
-        elif score >= 70:
-            verdict = "Strong Match Found"
-            color = "#0ea5e9"
-            recommendation = "The robots are impressed. You’re definitely in the 'must-call' pile! 📞"
-        elif score >= 50:
-            verdict = "Potential Match"
+        # Determine verdict based on STRICT visibility rules
+        vis = score_data.get('visibility_status', {})
+        
+        if vis.get('contact_details_unlocked', False):
+            # Perfect Match: >= 85 AND All Mandatory Skills AND Exp > 60
+            verdict = "Perfect Match ✅"
+            color = "var(--accent-teal)"
+            recommendation = "Shortlist immediately! Meets all critical criteria. 🚀"
+        elif vis.get('is_limited_visibility', False):
+            # Potential Match: 70-84 OR High score with missing mandatory
+            verdict = "Potential Match ⚠️"
             color = "#f59e0b"
-            recommendation = "You're close! A few keyword tweaks and you'll be unstoppable. 🎯"
+            if score >= 85:
+                recommendation = "High score but missing mandatory skills. Check gaps carefully. 🔍"
+            else:
+                recommendation = "Solid foundation. Needs specific keywords to cross the threshold. 📈"
         else:
-            verdict = "Work in Progress"
+            # Hidden: < 70
+            verdict = "Needs Improvement ❌"
             color = "#ef4444"
-            recommendation = "Don't panic! Even epic resumes have a rocky start. Let's optimize! 💪"
+            recommendation = "Significant gaps detected. Focus on mandatory skills and experience context. 💪"
             
         # Recruiter Insights
         insights = []
@@ -217,26 +235,52 @@ class ATSEngine:
         formatting_score = self._calculate_formatting_score(resume_data)
         
         # Weighted total
+        # Scale based on new weights (30% Semantic, 30% Skills, 20% Keywords, 15% Exp, 5% Format)
+        # Assuming domain_score covers semantic similarity
+        
         total_score = (
-            keyword_score * 0.35 +
-            skills_score * 0.40 +
-            experience_score * 0.10 +
-            domain_score * 0.10 +
+            domain_score * 0.30 +
+            skills_score * 0.30 +
+            keyword_score * 0.20 +
+            experience_score * 0.15 +
             formatting_score * 0.05
         )
         
+        # --- Multi-Gate Visibility Logic ---
+        # 1. Mandatory Skills Check
+        resume_skills_norm = set(self._normalize_skill(s) for s in resume_data['skills'])
+        mandatory_skills_norm = set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])
+        missing_mandatory = mandatory_skills_norm - resume_skills_norm
+        has_all_mandatory = len(missing_mandatory) == 0
+
+        # 2. Gate Conditions
+        # Perfect Match Requirements: >= 85 Score AND All Mandatory Skills AND Decent Experience
+        is_perfect_match = (total_score >= 85) and has_all_mandatory and (experience_score >= 60)
+        
+        # Potential Match: 70-84 OR High Score but missing mandatory skills
+        is_potential_match = (70 <= total_score < 85) or (total_score >= 85 and not is_perfect_match)
+
+        visibility_status = {
+            'is_recruiter_visible': is_perfect_match or is_potential_match, # Visible but maybe limited
+            'is_limited_visibility': is_potential_match,
+            'is_hidden': total_score < 70,
+            'contact_details_unlocked': is_perfect_match, # STRICT UNLOCK
+            'missing_mandatory': list(missing_mandatory)
+        }
+
         return {
             'total_score': round(total_score, 2),
+            'visibility_status': visibility_status,
             'breakdown': {
-                'keyword_match': {'score': round(keyword_score, 2), 'weight': '35%'},
+                'domain_similarity': {'score': round(domain_score, 2), 'weight': '30%'},
                 'skills_match': {
                     'score': round(skills_score, 2), 
-                    'weight': '40%',
-                    'matched': list(set(self._normalize_skill(s) for s in resume_data['skills']) & set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])),
-                    'missing': list(set(self._normalize_skill(s) for s in jd_data['mandatory_skills']) - set(self._normalize_skill(s) for s in resume_data['skills']))
+                    'weight': '30%',
+                    'matched': list(resume_skills_norm & mandatory_skills_norm),
+                    'missing': list(missing_mandatory)
                 },
-                'experience_alignment': {'score': round(experience_score, 2), 'weight': '10%'},
-                'domain_similarity': {'score': round(domain_score, 2), 'weight': '10%'},
+                'keyword_match': {'score': round(keyword_score, 2), 'weight': '20%'},
+                'experience_alignment': {'score': round(experience_score, 2), 'weight': '15%'},
                 'formatting': {'score': round(formatting_score, 2), 'weight': '5%'}
             }
         }
@@ -695,15 +739,24 @@ class ATSEngine:
         return self._extract_skills(text)
     
     def _calculate_keyword_match(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate weighted keyword match score"""
-        resume_keywords = set(resume_data['keywords'])
-        jd_weighted = jd_data.get('weighted_keywords', {})
+        """Calculate weighted keyword match score with normalization"""
+        # Normalize resume keywords
+        resume_keywords = set(self._normalize_skill(k) for k in resume_data.get('keywords', []))
         
+        jd_weighted = jd_data.get('weighted_keywords', {})
         if not jd_weighted:
             return 100.0
         
-        max_score = sum(jd_weighted.values())
-        current_score = sum(weight for kw, weight in jd_weighted.items() if kw in resume_keywords)
+        # Normalize JD weighted keywords key-by-key
+        normalized_weights = {}
+        for kw, weight in jd_weighted.items():
+            norm_kw = self._normalize_skill(kw)
+            normalized_weights[norm_kw] = max(normalized_weights.get(norm_kw, 0), weight)
+            
+        max_score = sum(normalized_weights.values())
+        if max_score == 0: return 100.0
+
+        current_score = sum(weight for kw, weight in normalized_weights.items() if kw in resume_keywords)
         
         score = (current_score / max_score) * 100
         return min(score, 100.0)
@@ -744,22 +797,36 @@ class ATSEngine:
     def _calculate_experience_alignment(self, resume_data: Dict, jd_data: Dict) -> float:
         """Calculate experience alignment based on duration and context"""
         if not resume_data['experience']:
-            return 0.0 # No experience section is a major penalty
-        
+            return 20.0 # Partial credit for implicit experience in other sections
+
         # Context match
-        exp_text = ' '.join([exp.get('header', '') + ' ' + ' '.join(exp.get('bullets', [])) 
+        exp_text = ' '.join([str(exp.get('header', '')) + ' ' + ' '.join(exp.get('bullets', [])) 
                             for exp in resume_data['experience']]).lower()
         
-        jd_keywords = set(jd_data['domain_keywords'][:20])
-        matched_keywords = sum(1 for kw in jd_keywords if kw in exp_text)
+        # Use normalized skill matching in experience text too
+        jd_keywords = set(self._normalize_skill(jw) for jw in jd_data['domain_keywords'][:25])
         
-        context_score = (matched_keywords / len(jd_keywords)) * 100 if jd_keywords else 80.0
+        matched_count = 0
+        for kw in jd_keywords:
+            if kw in exp_text:
+                matched_count += 1
         
+        # Base score is higher to avoid "0" experience shock
+        if not jd_keywords:
+            context_score = 100.0
+        else:
+            # Non-linear scoring for experience context
+            ratio = matched_count / len(jd_keywords)
+            if ratio > 0.6: context_score = 100
+            elif ratio > 0.3: context_score = 85
+            else: context_score = 50 + (ratio * 100)
+
         # Action verb density
         resume_verbs = [v for v in self.action_verbs if v in exp_text]
+        # Cap at 15 verbs for max score
         verb_score = min((len(resume_verbs) / 10) * 100, 100.0)
         
-        return (context_score * 0.7) + (verb_score * 0.3)
+        return min((context_score * 0.7) + (verb_score * 0.3), 100.0)
 
     def _calculate_domain_similarity(self, resume_data: Dict, jd_data: Dict) -> float:
         """Calculate semantic domain similarity"""
@@ -770,8 +837,14 @@ class ATSEngine:
         if not jd_keywords:
             return 100.0
             
-        # Check for presence of key domain concepts
-        found = sum(1 for kw in jd_keywords if kw in resume_text)
+        # Check for presence of key domain concepts (with semantic normalization)
+        found = 0
+        for kw in jd_keywords:
+            norm_kw = self._normalize_skill(kw)
+            # Check raw keyword OR normalized keyword
+            if kw in resume_text or norm_kw in resume_text:
+                found += 1
+                
         score = (found / len(jd_keywords)) * 100
         
         return min(score, 100.0)
