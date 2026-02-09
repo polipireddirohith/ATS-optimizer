@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Resume Analysis - ATS Optimizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .bulk-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .bulk-upload-section {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 2px dashed var(--border-color);
+        }
+
+        .file-drop-zone {
+            border: 3px dashed var(--accent-teal);
+            border-radius: 12px;
+            padding: 3rem;
+            text-align: center;
+            background: var(--bg-alt);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-drop-zone:hover {
+            background: rgba(20, 184, 166, 0.05);
+            border-color: var(--accent-purple);
+        }
+
+        .file-drop-zone.dragover {
+            background: rgba(20, 184, 166, 0.1);
+            border-color: var(--accent-purple);
+            transform: scale(1.02);
+        }
+
+        .file-list {
+            margin-top: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .file-item {
+            background: var(--bg-alt);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .file-item .remove-btn {
+            background: #ef4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            font-size: 0.7rem;
+        }
+
+        .results-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .candidate-card {
+            background: var(--bg-card);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border-color);
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .candidate-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .rank-badge {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .candidate-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .candidate-info h3 {
+            margin: 0 0 0.25rem 0;
+            color: var(--text-primary);
+        }
+
+        .candidate-contact {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .score-display {
+            text-align: right;
+        }
+
+        .score-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .verdict-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+            display: inline-block;
+        }
+
+        .comparison-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .summary-item {
+            text-align: center;
+        }
+
+        .summary-item .label {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        .summary-item .value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .loading-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(255, 255, 255, 0.2);
+            border-top-color: var(--accent-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bulk-container">
+        <header style="text-align: center; margin-bottom: 3rem;">
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">📊 Bulk Resume Analysis</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;">Upload multiple resumes and compare them against a
+                single job description</p>
+        </header>
+
+        <div class="bulk-upload-section">
+            <h2>Step 1: Upload Resumes</h2>
+            <div class="file-drop-zone" id="dropZone">
+                <p style="font-size: 1.2rem; margin-bottom: 0.5rem;">📁 Drag & Drop Resume Files Here</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">or click to browse</p>
+                <input type="file" id="resumeFiles" multiple accept=".pdf,.docx,.txt" style="display: none;">
+            </div>
+            <div class="file-list" id="fileList"></div>
+        </div>
+
+        <div class="bulk-upload-section">
+            <h2>Step 2: Enter Job Description</h2>
+            <textarea id="jdText" placeholder="Paste the job description here..."
+                style="width: 100%; min-height: 200px; padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-alt); color: var(--text-primary); font-family: inherit; font-size: 0.95rem;"></textarea>
+        </div>
+
+        <div style="text-align: center; margin: 2rem 0;">
+            <button id="analyzeBtn" class="cta-button" style="padding: 1rem 3rem; font-size: 1.1rem; cursor: pointer;">
+                🚀 Analyze All Resumes
+            </button>
+        </div>
+
+        <div id="resultsSection" style="display: none;">
+            <div style="text-align: center; margin: 3rem 0 2rem;">
+                <h2 style="font-size: 2rem;">📈 Analysis Results</h2>
+                <p id="resultsSummary" style="color: var(--text-muted); font-size: 1.1rem; margin-top: 0.5rem;"></p>
+            </div>
+            <div class="results-grid" id="resultsGrid"></div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p style="font-size: 1.2rem; margin-bottom: 0.5rem;">Analyzing Resumes...</p>
+            <p id="loadingProgress" style="color: rgba(255,255,255,0.7);"></p>
+        </div>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const resumeFiles = document.getElementById('resumeFiles');
+        const fileList = document.getElementById('fileList');
+        const jdText = document.getElementById('jdText');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const resultsSection = document.getElementById('resultsSection');
+        const resultsGrid = document.getElementById('resultsGrid');
+        const resultsSummary = document.getElementById('resultsSummary');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingProgress = document.getElementById('loadingProgress');
+
+        let selectedFiles = [];
+
+        // Drag and drop handlers
+        dropZone.addEventListener('click', () => resumeFiles.click());
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        resumeFiles.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = [...selectedFiles, ...Array.from(files)];
+            updateFileList();
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            selectedFiles.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span>📄 ${file.name}</span>
+                    <button class="remove-btn" onclick="removeFile(${index})">×</button>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+
+        window.removeFile = function (index) {
+            selectedFiles.splice(index, 1);
+            updateFileList();
+        };
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (selectedFiles.length === 0) {
+                alert('Please upload at least one resume');
+                return;
+            }
+            if (!jdText.value.trim()) {
+                alert('Please enter a job description');
+                return;
+            }
+
+            const formData = new FormData();
+            selectedFiles.forEach(file => {
+                formData.append('resume_files', file);
+            });
+            formData.append('jd_text', jdText.value);
+
+            loadingOverlay.style.display = 'flex';
+            loadingProgress.textContent = `Processing ${selectedFiles.length} resume(s)...`;
+
+            try {
+                const response = await fetch('/api/bulk-analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    alert('Analysis failed: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                loadingOverlay.style.display = 'none';
+            }
+        });
+
+        function displayResults(data) {
+            resultsSummary.textContent = `Analyzed ${data.total_processed} resume(s) | ${data.successful} successful | ${data.failed} failed`;
+            resultsGrid.innerHTML = '';
+
+            data.candidates.forEach(candidate => {
+                const card = document.createElement('div');
+                card.className = 'candidate-card';
+
+                const verdictStyle = candidate.verdict_color;
+
+                card.innerHTML = `
+                    <div class="rank-badge">#${candidate.rank}</div>
+                    <div class="candidate-header">
+                        <div class="candidate-info">
+                            <h3>${candidate.candidate_name || 'Unknown'}</h3>
+                            <div class="candidate-contact">
+                                ${candidate.email || 'No email'} | ${candidate.phone || 'No phone'}
+                            </div>
+                            <div class="verdict-badge" style="background: ${verdictStyle}20; color: ${verdictStyle}; border: 1px solid ${verdictStyle};">
+                                ${candidate.verdict}
+                            </div>
+                        </div>
+                        <div class="score-display">
+                            <div class="score-number">${Math.round(candidate.total_score)}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted);">ATS Score</div>
+                        </div>
+                    </div>
+                    <div class="comparison-summary">
+                        <div class="summary-item">
+                            <div class="label">Skills Match</div>
+                            <div class="value" style="color: ${candidate.matched_skills.length > 0 ? 'var(--accent-teal)' : '#ef4444'};">
+                                ${candidate.matched_skills.length}/${candidate.matched_skills.length + candidate.missing_skills.length}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Education</div>
+                            <div class="value" style="color: ${candidate.education_match ? 'var(--accent-teal)' : '#ef4444'};">
+                                ${candidate.education_match ? '✓ Match' : '✗ No Match'}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">Certifications</div>
+                            <div class="value" style="color: ${candidate.matched_certifications.length > 0 ? 'var(--accent-teal)' : '#6b7280'};">
+                                ${candidate.matched_certifications.length}/${candidate.matched_certifications.length + candidate.missing_certifications.length}
+                            </div>
+                        </div>
+                        <div class="summary-item">
+                            <div class="label">File</div>
+                            <div class="value" style="font-size: 0.8rem; color: var(--text-muted);">
+                                ${candidate.filename}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                resultsGrid.appendChild(card);
+            });
+
+            resultsSection.style.display = 'block';
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+
+</html>
