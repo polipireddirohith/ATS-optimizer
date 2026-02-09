@@ -48,15 +48,6 @@
         </div>
     </div>
 
-    <!-- Floating Sticky Notes -->
-    <div class="sticky-note note-1">
-        <button class="close-note" onclick="this.parentElement.style.display='none'">×</button>
-        "ATS robots don't have feelings, but they love keywords." 🤖
-    </div>
-    <div class="sticky-note note-2">
-        <button class="close-note" onclick="this.parentElement.style.display='none'">×</button>
-        "Recruiters spend 6 seconds on a resume. Make them count! ⏱️"
-    </div>
 
     <!-- Success Celebration Container -->
     <div id="successPopper" style="position: fixed; inset: 0; pointer-events: none; z-index: 10000; display: none;">
@@ -82,12 +73,11 @@
                     <span class="icon">🏠</span> Dashboard
                 </a>
                 <a href="#score-info" class="sidebar-link">
-                    <span class="icon">📈</span> Resume Score
+                    <span class="icon">📈</span> Analysis Report
                 </a>
-                <a href="#optimize-info" class="sidebar-link">
-                    <span class="icon">⚡</span> Optimize
-                </a>
+
                 <div style="height: 1px; background: var(--border-color); margin: 0.5rem 0;"></div>
+
                 <a href="/bulk" class="sidebar-link" style="color: var(--accent-teal);">
                     <span class="icon">📊</span> Bulk Analysis
                 </a>
@@ -97,62 +87,26 @@
             </nav>
 
             <div class="sidebar-footer">
-                <div class="sidebar-footer">
-                    <!-- Gamification Section -->
-                    <div class="sidebar-user-progress"
-                        style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-alt); border-radius: 8px;">
-                        <div
-                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-                            <div class="level-badge" id="levelBadge"
-                                style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: var(--accent-teal); color: black; border-radius: 4px; font-weight: 700;">
-                                Lv. 1</div>
-                            <div class="level-name" id="levelName"
-                                style="font-size: 0.75rem; color: var(--text-muted);">Resume Rookie</div>
-                        </div>
-                        <div class="xp-container" style="display: flex; align-items: center; gap: 0.5rem;">
-                            <div class="xp-bar-bg"
-                                style="flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
-                                <div class="xp-bar-fill" id="xpBar"
-                                    style="height: 100%; width: 0%; background: var(--accent-teal); transition: width 0.3s ease;">
-                                </div>
-                            </div>
-                            <span class="xp-text" id="xpText"
-                                style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">0 / 500
-                                XP</span>
-                        </div>
-
-                        <div class="status-indicator" id="streakIndicator"
-                            style="margin-top: 0.75rem; display: none; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
-                            <div class="streak-flame-container">
-                                <div
-                                    style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #f59e0b; border-radius: 50%; animation: spin 1s linear infinite;">
-                                </div>
-                            </div>
-                            <span>Streak: <b id="streakCount" style="color: #f59e0b;">0</b> days</span>
-                        </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Theme</span>
+                    <div class="nav-theme-toggle">
+                        <button class="theme-toggle-btn" data-set-theme="default" title="Light Mode">☀️</button>
+                        <button class="theme-toggle-btn" data-set-theme="midnight" title="Enterprise Dark">🌙</button>
                     </div>
-
-                    <div class="role-toggle-container" style="width: 100%;">
-                        <button class="role-btn active" data-role="candidate" onclick="setRole('candidate')"
-                            style="flex: 1;">Candidate</button>
-                        <button class="role-btn" data-role="hr" onclick="setRole('hr')" style="flex: 1;">HR</button>
-                    </div>
-
-                    <div
-                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
-                        <span style="font-size: 0.8rem; color: var(--text-muted);">Theme</span>
-                        <div class="nav-theme-toggle">
-                            <button class="theme-toggle-btn" data-set-theme="default" title="Light Mode">☀️</button>
-                            <button class="theme-toggle-btn" data-set-theme="midnight"
-                                title="Enterprise Dark">🌙</button>
-                        </div>
-                    </div>
-
-                    <button class="btn-primary-sm" onclick="document.getElementById('resumeFile').click()"
-                        style="width: 100%; justify-content: center; margin-top: 1rem;">
-                        Upload Resume
-                    </button>
                 </div>
+
+                <div class="hr-badge"
+                    style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; background: rgba(139, 92, 246, 0.1); border-radius: 6px; margin-bottom: 1rem;">
+                    <span style="font-size: 1.2rem;">👔</span>
+                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--accent-purple);">HR Recruiter
+                        Mode</span>
+                </div>
+
+                <button class="btn-primary-sm" onclick="document.getElementById('resumeFile').click()"
+                    style="width: 100%; justify-content: center;">
+                    Upload Resume
+                </button>
+            </div>
         </aside>
 
         <!-- Main Content Area -->

@@ -55,85 +55,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const addNoteBtn = document.getElementById('addNoteBtn');
     const hrNewAnalysisBtn = document.getElementById('hrNewAnalysisBtn');
 
-    // ==================== Gamification Core ====================
-
-    const gameState = {
-        xp: parseInt(localStorage.getItem('ats_xp') || '0'),
-        level: parseInt(localStorage.getItem('ats_level') || '1'),
-        streak: parseInt(localStorage.getItem('ats_streak') || '0'),
-        lastVisit: localStorage.getItem('ats_last_visit'),
-        achievements: JSON.parse(localStorage.getItem('ats_achievements') || '[]'),
-        dailyChallengeDone: localStorage.getItem('ats_daily_done') === new Date().toDateString()
-    };
-
-    const levels = [
-        { minXp: 0, name: "Resume Rookie" },
-        { minXp: 500, name: "ATS Explorer" },
-        { minXp: 1500, name: "Keyword Ninja" },
-        { minXp: 3500, name: "Resume Pro" },
-        { minXp: 7000, name: "Recruiter-Ready" }
-    ];
-
-    function saveState() {
-        localStorage.setItem('ats_xp', gameState.xp);
-        localStorage.setItem('ats_level', gameState.level);
-        localStorage.setItem('ats_streak', gameState.streak);
-        localStorage.setItem('ats_achievements', JSON.stringify(gameState.achievements));
-    }
-
-    function addXp(amount, reason) {
-        gameState.xp += amount;
-        if (reason) geminiTalk(`+${amount} XP: ${reason} ✨`, 2000);
-        updateXpUi();
-        checkLevelUp();
-        saveState();
-    }
-
-    function updateXpUi() {
-        const currentLevel = levels[gameState.level - 1];
-        const nextLevel = levels[gameState.level] || { minXp: gameState.xp + 1000 };
-        const progress = ((gameState.xp - currentLevel.minXp) / (nextLevel.minXp - currentLevel.minXp)) * 100;
-
-        xpBar.style.width = `${Math.min(progress, 100)}%`;
-        xpText.textContent = `${gameState.xp} / ${nextLevel.minXp} XP`;
-        levelBadge.textContent = `Lv. ${gameState.level}`;
-        levelName.textContent = currentLevel.name;
-    }
-
-    function checkLevelUp() {
-        const nextLevel = levels[gameState.level];
-        if (nextLevel && gameState.xp >= nextLevel.minXp) {
-            gameState.level++;
-            geminiTalk(`LEVEL UP! You are now a ${nextLevel.name}! 🎉`, 5000);
-            triggerConfetti();
-            updateXpUi();
-        }
-    }
-
-    function unlockAchievement(id, title, icon) {
-        if (gameState.achievements.find(a => a.id === id)) return;
-
-        const achievement = { id, title, icon, date: new Date().toLocaleDateString() };
-        gameState.achievements.unshift(achievement);
-        renderAchievements();
-        geminiTalk(`ACHIEVEMENT UNLOCKED: ${title} 🏆`, 4000);
-        addXp(250, "Achievement Unlocked");
-        saveState();
-    }
-
-    function renderAchievements() {
-        if (!achievementsList) return;
-        achievementsList.innerHTML = gameState.achievements.slice(0, 3).map(a => `
-            <div class="achievement-mini-item">
-                <div class="achievement-icon">${a.icon}</div>
-                <div class="achievement-info">
-                    <strong>${a.title}</strong>
-                    <span>${a.date}</span>
-                </div>
-            </div>
-        `).join('');
-    }
-
+    // ==================== Gamification Core Removed ====================
+    // HR Recruiter Mode Active
     // ==================== Logic ====================
 
     // Theme Management
@@ -154,38 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
     }
 
-    // Initialize UI
-    updateXpUi();
-    renderAchievements();
-
-    // Streak & Daily
-    const today = new Date().toDateString();
-    if (gameState.lastVisit !== today) {
-        if (gameState.lastVisit) {
-            const lastDate = new Date(gameState.lastVisit);
-            const diff = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
-            if (diff <= 1.5) {
-                gameState.streak++;
-            } else {
-                geminiTalk("Your streak missed you yesterday! 🥺 Let's rebuild it.", 5000);
-            }
-        } else {
-            gameState.streak = 1;
-        }
-        gameState.lastVisit = today;
-        localStorage.setItem('ats_last_visit', today);
-        saveState();
-    }
-
-    if (gameState.streak > 0) {
-        document.getElementById('streakIndicator').style.display = 'flex';
-        streakCount.textContent = gameState.streak;
-    }
-
-    if (gameState.dailyChallengeDone) {
-        challengeDot.classList.add('completed');
-        challengeStatus.textContent = "Completed";
-    }
+    // Gamification initialization removed
 
     // ==================== Workspace Interaction ====================
 
@@ -195,7 +87,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e.target.files.length > 0) {
             handleFileSelect(e.target.files[0]);
             geminiTalk("Awesome resume! Reading those professional secrets... 📄✨");
-            addXp(50, "Resume Uploaded");
+            // XP Award removed for HR Mode
             triggerSparkle();
         }
     });
@@ -665,106 +557,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hrHtml += `</div>`;
         recruiterInsights.innerHTML = hrHtml;
 
-        // 5. Editor & Comprehensive Improvements
-        optimizedResume.innerText = data.optimized_resume;
-        improvementsContainer.innerHTML = '';
-
-        const allSuggestions = [
-            ...(data.improvements.keyword_insertions || []).map(i => ({
-                ...i,
-                icon: '➕',
-                type: 'keyword',
-                content: i.keyword
-            })),
-            ...(data.improvements.bullet_point_rewrites || []).map(i => ({
-                ...i,
-                icon: '✍️',
-                keyword: 'STAR Rewrite',
-                type: 'rewrite',
-                content: i.improved
-            })),
-            ...(data.improvements.formatting_fixes || []).map(i => ({
-                keyword: 'Formatting',
-                suggestion: i,
-                icon: '🎨',
-                type: 'format',
-                content: i
-            }))
-        ];
-
-        if (allSuggestions.length > 0) {
-            improvementsContainer.innerHTML = allSuggestions.slice(0, 8).map(i => {
-                const dataPayload = encodeURIComponent(JSON.stringify({
-                    type: i.type,
-                    content: i.content,
-                    keyword: i.keyword
-                }));
-                return `
-                <div class="suggestion-card" onclick="window.applySuggestion('${dataPayload}'); this.classList.add('applied');">
-                    <span style="font-size:1.2rem; margin-right:0.5rem;">${i.icon}</span>
-                    <div>
-                        <strong>${i.keyword}</strong>
-                        <p>${i.suggestion || i.content}</p>
-                    </div>
-                </div>
-            `;
-            }).join('');
-        }
-
-        window.applySuggestion = function (payload) {
-            const data = JSON.parse(decodeURIComponent(payload));
-            const { type, content, keyword } = data;
-
-            optimizedResume.focus();
-            const resumeText = optimizedResume.innerText;
-
-            if (type === 'keyword') {
-                // Smart placement for skills
-                const skillHeaders = ["Core Technical Skills:", "TECHNICAL SKILLS", "Additional Technical Skills:"];
-                for (const header of skillHeaders) {
-                    const idx = resumeText.indexOf(header);
-                    if (idx !== -1) {
-                        const insertPos = idx + header.length;
-                        const before = resumeText.substring(0, insertPos);
-                        const after = resumeText.substring(insertPos);
-                        // Add with comma if it looks like a list
-                        const separator = after.trim().startsWith('\n') ? '\n  • ' : ' ';
-                        const suffix = after.trim().startsWith('\n') ? '' : ',';
-                        optimizedResume.innerText = before + separator + content + suffix + after;
-                        geminiTalk(`Injected "${content}" into your Skills section! 💉✨`);
-                        return;
-                    }
-                }
-            } else if (type === 'rewrite') {
-                // For rewrites, if we find a section called EXPERIENCE, we prepend it there
-                const expHeader = "PROFESSIONAL EXPERIENCE";
-                const idx = resumeText.toUpperCase().indexOf(expHeader);
-                if (idx !== -1) {
-                    const insertPos = idx + expHeader.length;
-                    const before = resumeText.substring(0, insertPos);
-                    const after = resumeText.substring(insertPos);
-                    optimizedResume.innerText = before + "\n• " + content + after;
-                    geminiTalk(`Added high-impact bullet to your experience! ✍️🔥`);
-                    return;
-                }
-            }
-
-            // Fallback: Use Selection API if possible, else Append
-            const selection = window.getSelection();
-            if (selection.rangeCount > 0) {
-                const range = selection.getRangeAt(0);
-                if (optimizedResume.contains(range.commonAncestorContainer)) {
-                    range.deleteContents();
-                    range.insertNode(document.createTextNode(content));
-                    geminiTalk("Inserted at cursor position! 🎯");
-                    return;
-                }
-            }
-
-            // Absolute Fallback: Append at bottom
-            optimizedResume.innerText += "\n\n" + (type === 'keyword' ? `NEW SKILL: ${content}` : content);
-            geminiTalk("Added to the end of your resume draft! 📝");
-        };
+        // 5. Optimization - Disabled for HR View
+        // Optimization features are for candidates only.
     }
 
     function addKeywordPill(text, type) {
