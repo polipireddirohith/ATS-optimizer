@@ -1318,3 +1318,140 @@ body {
         opacity: 0;
     }
 }
+
+/* ==================== Playful Dark Mode & Mascot Redesign ==================== */
+[data-theme="midnight"] {
+    --bg-app: #0a0f1d;
+    --bg-card: #151c2f;
+    --primary-color: #00f2ff;
+    /* Neon Cyan */
+    --accent-color: #bc13fe;
+    /* Electric Purple */
+    --accent-teal: #00ffcc;
+    /* Soft Mint */
+    --text-primary: #e2e8f0;
+    --text-secondary: #94a3b8;
+    --border-color: rgba(0, 242, 255, 0.1);
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="midnight"] body {
+    background: radial-gradient(circle at top right, #1a1f35, #0a0f1d) !important;
+}
+
+/* Mascot - The ATS Bot */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 60px;
+    background: url('https://img.icons8.com/isometric/100/bot.png') no-repeat center/contain;
+    filter: drop-shadow(0 0 10px var(--primary-color));
+    animation: mascotFloat 3s infinite ease-in-out;
+}
+
+/* Mascot Blinking Eyes Effect */
+.sidebar::after {
+    content: '..';
+    position: absolute;
+    bottom: 110px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: monospace;
+    font-weight: 900;
+    color: var(--accent-teal);
+    letter-spacing: 4px;
+    animation: blinkEyes 4s infinite;
+}
+
+@keyframes blinkEyes {
+
+    0%,
+    90%,
+    100% {
+        opacity: 1;
+    }
+
+    95% {
+        opacity: 0;
+    }
+}
+
+@keyframes mascotFloat {
+
+    0%,
+    100% {
+        transform: translate(-50%, 0);
+    }
+
+    50% {
+        transform: translate(-50%, -10px);
+    }
+}
+
+/* Glowing Elements for Midnight */
+[data-theme="midnight"] .score-ring-container {
+    filter: drop-shadow(0 0 15px var(--primary-color));
+}
+
+[data-theme="midnight"] .badge-success {
+    background: var(--accent-teal);
+    color: #000;
+    box-shadow: 0 0 10px var(--accent-teal);
+}
+
+[data-theme="midnight"] .keyword-pill.matched {
+    background: rgba(0, 255, 204, 0.1);
+    border: 1px solid var(--accent-teal);
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+}
+
+/* Jittery elements */
+.card-header h3 {
+    transition: all 0.2s;
+}
+
+[data-theme="midnight"] .btn-primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--accent-color)) !important;
+    border: none;
+    box-shadow: 0 4px 15px rgba(0, 242, 255, 0.3);
+    color: #0a0f1d !important;
+    font-weight: 700;
+}
+
+[data-theme="midnight"] .workspace-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    backdrop-filter: blur(10px);
+}
+
+/* Lottie Player Spacing */
+.drop-animation-container {
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: center;
+}
+
+.lottie-loader {
+    margin-bottom: 2rem;
+}
+
+/* Pulsing Score Meter */
+[data-theme="midnight"] .score-text {
+    animation: pulseGlow 2s infinite ease-in-out;
+}
+
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        text-shadow: 0 0 5px var(--primary-color);
+    }
+
+    50% {
+        text-shadow: 0 0 20px var(--primary-color), 0 0 30px var(--accent-color);
+    }
+}

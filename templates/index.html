@@ -12,6 +12,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <!-- Lottie Animation Script -->
+    <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
 </head>
 
 <body class="dashboard-layout">
@@ -137,10 +139,14 @@
                         <input type="file" id="resumeFile" name="resume_file" accept=".pdf,.docx,.txt" required>
                     </form>
                     <div class="drop-area" id="dropArea">
-                        <div class="drop-icon">📄</div>
+                        <div class="drop-animation-container">
+                            <lottie-player src="https://assets10.lottiefiles.com/packages/lf20_m6cuL6.json"
+                                background="transparent" speed="1" style="width: 120px; height: 120px;" loop
+                                autoplay></lottie-player>
+                        </div>
                         <div class="drop-text">
-                            <h4>Drop resume here</h4>
-                            <p>or click to browse files (PDF, DOCX)</p>
+                            <h4>Drop your resume here.</h4>
+                            <p>We promise not to laugh. PDFs only—the robots are picky.</p>
                         </div>
                         <div class="file-info" id="selectedFileName" style="display: none;"></div>
                     </div>
@@ -175,9 +181,13 @@
             <!-- Loading State -->
             <section class="loading-section" id="loadingSection" style="display: none;">
                 <div class="loading-card">
-                    <div class="loading-spinner"></div>
-                    <h3>Simulating ATS Parsing...</h3>
-                    <p id="loadingStep">Extracting core competencies...</p>
+                    <div class="lottie-loader">
+                        <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_96py9mra.json"
+                            background="transparent" speed="1" style="width: 200px; height: 200px;" loop
+                            autoplay></lottie-player>
+                    </div>
+                    <h3>Scanning… judging… analyzing… okay mostly analyzing.</h3>
+                    <p id="loadingStep">ATS robots are reading very carefully 👓</p>
                 </div>
             </section>
 

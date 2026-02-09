@@ -257,12 +257,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function simulateProgress() {
         const steps = [
-            "Initializing ATS parsing engine...",
-            "Extracting identity and contact metadata...",
-            "Contextualizing professional experience...",
-            "Running multi-layer skill match analysis...",
-            "Evaluating document formatting compatibility...",
-            "Finalizing recruiter suitability verdict..."
+            "Scanning… judging… analyzing… okay mostly analyzing.",
+            "ATS robots are reading very carefully 👓",
+            "Checking if you added enough buzzwords... 🐝",
+            "Consulting the hiring oracle... 🔮",
+            "Making sure your margins aren't suspicious... 📏",
+            "Finalizing the bot-friendly verdict... 🤖"
         ];
         const stepEl = document.getElementById('loadingStep');
         let idx = 0;
@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 clearInterval(interval);
             }
-        }, 1200);
+        }, 1500);
     }
 
     // ==================== Results Rendering ====================
@@ -283,9 +283,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Gemini Response
         const finalScore = Math.round(data.total_score || data.score.total_score);
-        if (finalScore > 80) geminiTalk(`WOW! ${finalScore}% match! You're a superstar! 🌟`);
-        else if (finalScore > 50) geminiTalk(`Solid match! Let's tweak it to perfection! 🛠️`);
-        else geminiTalk("A bit of work to do, but we'll get there! 🎯");
+        if (finalScore > 80) geminiTalk("ATS approved. Recruiters incoming! 🚀");
+        else if (finalScore > 50) geminiTalk("Not bad! ATS is nodding slowly. 🤖");
+        else geminiTalk("Don’t panic. Even great resumes start somewhere. 🎯");
 
         // 1. Score Widget
         const score = finalScore;
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // React to file upload
     fileInput.addEventListener('change', () => {
         if (fileInput.files.length > 0) {
-            geminiTalk("Awesome resume! Let's see those skills... 📄✨");
+            geminiTalk("Awesome resume! Let's see those professional secrets... 📄✨");
             triggerSparkle();
         }
     });
@@ -448,14 +448,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // React to JD typing
     jdInput.addEventListener('input', () => {
         if (jdInput.value.length > 50 && jdInput.value.length < 55) {
-            geminiTalk("Reading the fine print... You've got this! 💪");
+            geminiTalk("Reading the fine print... ATS robots are paying attention! 👓");
         }
     });
 
     // React to analysis start
     analyzeBtn.addEventListener('click', () => {
         if (fileInput.files.length && jdInput.value.trim()) {
-            geminiTalk("Analysing... Gemini logic: ACTIVATED! 🧠⚡", 5000);
+            geminiTalk("Judgment day! Sending to the robot overlords... 🧠⚡", 5000);
         }
     });
 
