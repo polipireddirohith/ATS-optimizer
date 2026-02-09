@@ -799,10 +799,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (newAnalysisBtn) {
         newAnalysisBtn.onclick = () => {
-            if (resultsSection.style.display !== 'none') {
-                navigate('optimize');
-            } else {
-                location.reload();
+            // Scroll to the optimization editor
+            const editorSection = document.getElementById('editor');
+            if (editorSection) {
+                editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         };
     }
