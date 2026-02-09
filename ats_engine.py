@@ -333,14 +333,12 @@ class ATSEngine:
 
     def calculate_ats_score(self, resume_data: Dict, jd_data: Dict) -> Dict:
         """
-        Calculate ATS compatibility score (0-100) with breakdown
+        Calculate ATS compatibility score (0-100) with DYNAMIC breakdown
         
-        Scoring components:
-        - Keyword Match: 40%
-        - Skills Match: 25%
-        - Experience Alignment: 15%
-        - Role & Domain Similarity: 10%
-        - Resume Formatting: 10%
+        IMPORTANT: Only scores criteria that are ACTUALLY REQUIRED in the JD
+        - If JD doesn't mention certifications, they don't affect score
+        - If JD doesn't specify education, it's not scored
+        - Weights are dynamically adjusted based on what's required
         
         Args:
             resume_data: Parsed resume data
@@ -349,28 +347,68 @@ class ATSEngine:
         Returns:
             Dictionary containing score and breakdown
         """
+        # Determine what's actually required in the JD
+        has_cert_requirements = bool(jd_data.get('certifications_required'))
+        has_edu_requirements = jd_data.get('education_required', 'Not specified') != 'Not specified'
+        has_skills_requirements = bool(jd_data.get('mandatory_skills') or jd_data.get('preferred_skills'))
+        has_experience_requirements = bool(jd_data.get('experience_required'))
+        
         # Calculate individual scores
         keyword_score = self._calculate_keyword_match(resume_data, jd_data)
-        skills_score = self._calculate_skills_match(resume_data, jd_data)
-        experience_score = self._calculate_experience_alignment(resume_data, jd_data)
+        skills_score = self._calculate_skills_match(resume_data, jd_data) if has_skills_requirements else 0
+        experience_score = self._calculate_experience_alignment(resume_data, jd_data) if has_experience_requirements else 0
         domain_score = self._calculate_domain_similarity(resume_data, jd_data)
         formatting_score = self._calculate_formatting_score(resume_data)
-        cert_score = self._calculate_certifications_match(resume_data, jd_data)
         
-        # Education matching
-        req_edu = jd_data.get('education_required', 'Not specified')
-        resume_edu_list = resume_data.get('education', [])
-        edu_score = self._calculate_education_match(resume_edu_list, req_edu)
+        # Only calculate these if required in JD
+        cert_score = self._calculate_certifications_match(resume_data, jd_data) if has_cert_requirements else 0
+        edu_score = 0
+        if has_edu_requirements:
+            req_edu = jd_data.get('education_required', 'Not specified')
+            resume_edu_list = resume_data.get('education', [])
+            edu_score = self._calculate_education_match(resume_edu_list, req_edu)
         
-        # Weighted total
+        # DYNAMIC WEIGHTING based on what's required
+        # Base weights for always-present criteria
+        weights = {
+            'domain': 0.30,      # Always important - role fit
+            'keyword': 0.25,     # Always important - content match
+            'formatting': 0.10,  # Always important - ATS compatibility
+        }
+        
+        # Distribute remaining 35% among optional criteria that ARE required
+        remaining_weight = 0.35
+        optional_criteria = []
+        
+        if has_skills_requirements:
+            optional_criteria.append('skills')
+        if has_experience_requirements:
+            optional_criteria.append('experience')
+        if has_edu_requirements:
+            optional_criteria.append('education')
+        if has_cert_requirements:
+            optional_criteria.append('certifications')
+        
+        # Distribute remaining weight equally among required optional criteria
+        if optional_criteria:
+            weight_per_criterion = remaining_weight / len(optional_criteria)
+            for criterion in optional_criteria:
+                weights[criterion] = weight_per_criterion
+        else:
+            # If no optional criteria, redistribute to base criteria
+            weights['domain'] += 0.15
+            weights['keyword'] += 0.15
+            weights['formatting'] += 0.05
+        
+        # Calculate weighted total
         total_score = (
-            domain_score * 0.30 +
-            skills_score * 0.25 +
-            keyword_score * 0.20 +
-            experience_score * 0.10 +
-            edu_score * 0.05 +
-            cert_score * 0.05 +
-            formatting_score * 0.05
+            domain_score * weights['domain'] +
+            keyword_score * weights['keyword'] +
+            formatting_score * weights['formatting'] +
+            (skills_score * weights.get('skills', 0)) +
+            (experience_score * weights.get('experience', 0)) +
+            (edu_score * weights.get('education', 0)) +
+            (cert_score * weights.get('certifications', 0))
         )
         
         # --- Multi-Gate Visibility Logic ---
@@ -382,7 +420,7 @@ class ATSEngine:
 
         # 2. Gate Conditions
         # Perfect Match Requirements: >= 85 Score AND All Mandatory Skills AND Decent Experience
-        is_perfect_match = (total_score >= 85) and has_all_mandatory and (experience_score >= 60)
+        is_perfect_match = (total_score >= 85) and has_all_mandatory and (experience_score >= 60 if has_experience_requirements else True)
         
         # Potential Match: 70-84 OR High Score but missing mandatory skills
         is_potential_match = (70 <= total_score < 85) or (total_score >= 85 and not is_perfect_match)
@@ -394,24 +432,62 @@ class ATSEngine:
             'contact_details_unlocked': is_perfect_match, # STRICT UNLOCK
             'missing_mandatory': list(missing_mandatory)
         }
+        
+        # Build breakdown - only include criteria that were scored
+        breakdown = {
+            'domain_similarity': {
+                'score': round(domain_score, 2), 
+                'weight': f"{int(weights['domain'] * 100)}%",
+                'required': True
+            },
+            'keyword_match': {
+                'score': round(keyword_score, 2), 
+                'weight': f"{int(weights['keyword'] * 100)}%",
+                'required': True
+            },
+            'formatting': {
+                'score': round(formatting_score, 2), 
+                'weight': f"{int(weights['formatting'] * 100)}%",
+                'required': True
+            }
+        }
+        
+        # Only add optional criteria if they were required and scored
+        if has_skills_requirements:
+            breakdown['skills_match'] = {
+                'score': round(skills_score, 2), 
+                'weight': f"{int(weights.get('skills', 0) * 100)}%",
+                'required': True,
+                'matched': list(resume_skills_norm & mandatory_skills_norm),
+                'missing': list(missing_mandatory)
+            }
+        
+        if has_experience_requirements:
+            breakdown['experience_alignment'] = {
+                'score': round(experience_score, 2), 
+                'weight': f"{int(weights.get('experience', 0) * 100)}%",
+                'required': True
+            }
+        
+        if has_edu_requirements:
+            breakdown['education'] = {
+                'score': round(edu_score, 2), 
+                'weight': f"{int(weights.get('education', 0) * 100)}%",
+                'required': True
+            }
+        
+        if has_cert_requirements:
+            breakdown['certifications'] = {
+                'score': round(cert_score, 2), 
+                'weight': f"{int(weights.get('certifications', 0) * 100)}%",
+                'required': True
+            }
 
         return {
             'total_score': round(total_score, 2),
             'visibility_status': visibility_status,
-            'breakdown': {
-                'domain_similarity': {'score': round(domain_score, 2), 'weight': '30%'},
-                'skills_match': {
-                    'score': round(skills_score, 2), 
-                    'weight': '25%',
-                    'matched': list(resume_skills_norm & mandatory_skills_norm),
-                    'missing': list(missing_mandatory)
-                },
-                'keyword_match': {'score': round(keyword_score, 2), 'weight': '20%'},
-                'experience_alignment': {'score': round(experience_score, 2), 'weight': '10%'},
-                'education': {'score': round(edu_score, 2), 'weight': '5%'},
-                'certifications': {'score': round(cert_score, 2), 'weight': '5%'},
-                'formatting': {'score': round(formatting_score, 2), 'weight': '5%'}
-            }
+            'breakdown': breakdown,
+            'scoring_note': f"Score based on {len(breakdown)} criteria found in JD"
         }
     
     def perform_gap_analysis(self, resume_data: Dict, jd_data: Dict) -> Dict:
