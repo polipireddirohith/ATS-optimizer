@@ -128,6 +128,18 @@ class ATSEngine:
             'mep': 'mechanical electrical plumbing',
             'iot': 'internet of things'
         }
+        
+        self.certification_database = [
+            'pmp', 'aws certified', 'azure certified', 'google cloud certified',
+            'comptia', 'cissp', 'ccna', 'ccnp', 'itil', 'six sigma', 'cpa',
+            'cfa', 'shrm', 'ocp', 'mcp', 'ceh', 'certified ethical hacker',
+            'project management professional', 'scrum master', 'csm', 'psm',
+            'aws solutions architect', 'ckad', 'cka', 'cksa', 'oci', 'gcp',
+            'pance', 'comlex', 'usmle', 'nclex',
+            'bar exam', 'jd', 'llm',
+            'pe', 'fe', 'eit',
+            'prince2', 'safe', 'togaf', 'cism', 'cisa'
+        ]
 
     def _load_universal_skills(self):
         """Load expanded skill database from JSON"""
@@ -201,6 +213,7 @@ class ATSEngine:
             'experience_required': self._extract_experience_requirement(jd_text),
             'responsibilities': self._extract_responsibilities(jd_text),
             'domain_keywords': self._extract_domain_keywords(jd_text),
+            'required_certifications': self._extract_required_certifications(jd_text),
             'action_verbs': self._extract_action_verbs_from_jd(jd_text),
             'weighted_keywords': self._assign_keyword_weights(jd_text)
         }
@@ -266,6 +279,16 @@ class ATSEngine:
         else:
             insights.append("Soft Skills: Limited explicit soft skill keywords detected.")
             
+        # 4. Certification Check
+        req_certs = jd_data.get('required_certifications', [])
+        resume_certs = resume_data.get('certifications', [])
+        matched_certs = []
+        if req_certs:
+            for rc in req_certs:
+                if any(rc.lower() in c.lower() for c in resume_certs):
+                    matched_certs.append(rc)
+            insights.append(f"Certifications: {len(matched_certs)}/{len(req_certs)} required certificates found.")
+            
         return {
             'verdict': verdict,
             'color': color,
@@ -278,7 +301,9 @@ class ATSEngine:
             'matched_skills': list(matched),
             'missing_skills': list(mandatory - matched),
             'experience_summary': self._extract_relevant_experience_snippets(resume_data, jd_data),
-            'work_history': resume_data.get('experience', [])  # Full history for HR
+            'work_history': resume_data.get('experience', []),  # Full history for HR
+            'matched_certifications': matched_certs,
+            'missing_certifications': list(set(req_certs) - set(matched_certs))
         }
 
     def calculate_ats_score(self, resume_data: Dict, jd_data: Dict) -> Dict:
@@ -305,16 +330,15 @@ class ATSEngine:
         experience_score = self._calculate_experience_alignment(resume_data, jd_data)
         domain_score = self._calculate_domain_similarity(resume_data, jd_data)
         formatting_score = self._calculate_formatting_score(resume_data)
+        cert_score = self._calculate_certifications_match(resume_data, jd_data)
         
         # Weighted total
-        # Scale based on new weights (30% Semantic, 30% Skills, 20% Keywords, 15% Exp, 5% Format)
-        # Assuming domain_score covers semantic similarity
-        
         total_score = (
             domain_score * 0.30 +
-            skills_score * 0.30 +
+            skills_score * 0.25 +
             keyword_score * 0.20 +
             experience_score * 0.15 +
+            cert_score * 0.05 +
             formatting_score * 0.05
         )
         
@@ -347,12 +371,13 @@ class ATSEngine:
                 'domain_similarity': {'score': round(domain_score, 2), 'weight': '30%'},
                 'skills_match': {
                     'score': round(skills_score, 2), 
-                    'weight': '30%',
+                    'weight': '25%',
                     'matched': list(resume_skills_norm & mandatory_skills_norm),
                     'missing': list(missing_mandatory)
                 },
                 'keyword_match': {'score': round(keyword_score, 2), 'weight': '20%'},
                 'experience_alignment': {'score': round(experience_score, 2), 'weight': '15%'},
+                'certifications': {'score': round(cert_score, 2), 'weight': '5%'},
                 'formatting': {'score': round(formatting_score, 2), 'weight': '5%'}
             }
         }
@@ -809,6 +834,19 @@ class ATSEngine:
         """Extract domain-specific keywords"""
         return self._extract_keywords(jd_text)
     
+    def _extract_required_certifications(self, jd_text: str) -> List[str]:
+        """Extract required certifications from JD using the database"""
+        jd_lower = jd_text.lower()
+        found_certs = []
+        
+        for cert in self.certification_database:
+            # Use word boundaries to avoid partial matches
+            pattern = r'\b' + re.escape(cert) + r'\b'
+            if re.search(pattern, jd_lower):
+                found_certs.append(cert.upper())
+                
+        return list(set(found_certs))
+    
     def _extract_action_verbs_from_jd(self, jd_text: str) -> List[str]:
         """Extract action verbs from JD"""
         text_lower = jd_text.lower()
@@ -871,32 +909,31 @@ class ATSEngine:
         return self.synonym_map.get(s, s)
 
     def _calculate_skills_match(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate skills match score with higher precision and synonym support"""
+        """Calculate skills match score (Normalized)"""
         resume_skills = set(self._normalize_skill(s) for s in resume_data['skills'])
-        
         mandatory_skills = set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])
-        preferred_skills = set(self._normalize_skill(s) for s in jd_data['preferred_skills'])
         
-        # Mandatory skills (Critical)
-        if mandatory_skills:
-            mandatory_matched = resume_skills & mandatory_skills
-            # Non-linear scoring: matching most is very good
-            ratio = len(mandatory_matched) / len(mandatory_skills)
-            if ratio >= 0.8: mandatory_score = 100
-            elif ratio >= 0.5: mandatory_score = 85
-            else: mandatory_score = ratio * 100
-        else:
-            mandatory_score = 100.0
+        if not mandatory_skills:
+            return 100.0
             
-        # Preferred skills (Bonus)
-        if preferred_skills:
-            preferred_matched = resume_skills & preferred_skills
-            preferred_score = (len(preferred_matched) / len(preferred_skills)) * 100
-        else:
-            preferred_score = 100.0
+        matched = resume_skills & mandatory_skills
+        return (len(matched) / len(mandatory_skills)) * 100
+
+    def _calculate_certifications_match(self, resume_data: Dict, jd_data: Dict) -> float:
+        """Calculate certifications match score"""
+        required_certs = set(cert.lower() for cert in jd_data.get('required_certifications', []))
+        if not required_certs:
+            return 100.0
             
-        # Weighted average: 80% mandatory, 20% preferred
-        return min((mandatory_score * 0.8) + (preferred_score * 0.2), 100.0)
+        resume_certs = set(cert.lower() for cert in resume_data.get('certifications', []))
+        
+        # Check for matches (flexible match check)
+        matched_count = 0
+        for required in required_certs:
+            if any(required in rc.lower() for rc in resume_certs):
+                matched_count += 1
+                
+        return (matched_count / len(required_certs)) * 100
 
     def _calculate_experience_alignment(self, resume_data: Dict, jd_data: Dict) -> float:
         """Calculate experience alignment based on duration and context"""

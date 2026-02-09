@@ -452,6 +452,19 @@ document.addEventListener('DOMContentLoaded', () => {
             hrHtml += `</div></div>`;
         }
 
+        // Certifications Matrix
+        if (data.suitability.matched_certifications && data.suitability.matched_certifications.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Verified Certifications</h5><div class="skill-tags valid">`;
+            data.suitability.matched_certifications.forEach(c => hrHtml += `<span>📜 ${c}</span>`);
+            hrHtml += `</div></div>`;
+        }
+
+        if (data.suitability.missing_certifications && data.suitability.missing_certifications.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Missing Certifications</h5><div class="skill-tags missing">`;
+            data.suitability.missing_certifications.forEach(c => hrHtml += `<span>❓ ${c}</span>`);
+            hrHtml += `</div></div>`;
+        }
+
         // Experience Evidence
         if (data.suitability.experience_summary && data.suitability.experience_summary.length > 0) {
             hrHtml += `<div class="hr-section"><h5>Relevant Evidence Snippets</h5><ul>`;
