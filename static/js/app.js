@@ -466,39 +466,100 @@ document.addEventListener('DOMContentLoaded', () => {
         improvementsContainer.innerHTML = '';
 
         const allSuggestions = [
-            ...(data.improvements.keyword_insertions || []).map(i => ({ ...i, icon: '➕' })),
-            ...(data.improvements.bullet_point_rewrites || []).map(i => ({ ...i, icon: '✍️', keyword: 'STAR Rewrite' })),
-            ...(data.improvements.formatting_fixes || []).map(i => ({ keyword: 'Formatting', suggestion: i, icon: '🎨' }))
+            ...(data.improvements.keyword_insertions || []).map(i => ({
+                ...i,
+                icon: '➕',
+                type: 'keyword',
+                content: i.keyword
+            })),
+            ...(data.improvements.bullet_point_rewrites || []).map(i => ({
+                ...i,
+                icon: '✍️',
+                keyword: 'STAR Rewrite',
+                type: 'rewrite',
+                content: i.improved
+            })),
+            ...(data.improvements.formatting_fixes || []).map(i => ({
+                keyword: 'Formatting',
+                suggestion: i,
+                icon: '🎨',
+                type: 'format',
+                content: i
+            }))
         ];
 
         if (allSuggestions.length > 0) {
-            improvementsContainer.innerHTML = allSuggestions.slice(0, 8).map(i => `
-                <div class="suggestion-card" onclick="window.applySuggestion('${i.suggestion.replace(/'/g, "\\'")}'); this.classList.add('applied');">
+            improvementsContainer.innerHTML = allSuggestions.slice(0, 8).map(i => {
+                const dataPayload = encodeURIComponent(JSON.stringify({
+                    type: i.type,
+                    content: i.content,
+                    keyword: i.keyword
+                }));
+                return `
+                <div class="suggestion-card" onclick="window.applySuggestion('${dataPayload}'); this.classList.add('applied');">
                     <span style="font-size:1.2rem; margin-right:0.5rem;">${i.icon}</span>
                     <div>
                         <strong>${i.keyword}</strong>
-                        <p>${i.suggestion}</p>
+                        <p>${i.suggestion || i.content}</p>
                     </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
-        window.applySuggestion = function (text) {
-            // Focus editor and insert at cursor or just append if not focused
+        window.applySuggestion = function (payload) {
+            const data = JSON.parse(decodeURIComponent(payload));
+            const { type, content, keyword } = data;
+
             optimizedResume.focus();
+            const resumeText = optimizedResume.innerText;
+
+            if (type === 'keyword') {
+                // Smart placement for skills
+                const skillHeaders = ["Core Technical Skills:", "TECHNICAL SKILLS", "Additional Technical Skills:"];
+                for (const header of skillHeaders) {
+                    const idx = resumeText.indexOf(header);
+                    if (idx !== -1) {
+                        const insertPos = idx + header.length;
+                        const before = resumeText.substring(0, insertPos);
+                        const after = resumeText.substring(insertPos);
+                        // Add with comma if it looks like a list
+                        const separator = after.trim().startsWith('\n') ? '\n  • ' : ' ';
+                        const suffix = after.trim().startsWith('\n') ? '' : ',';
+                        optimizedResume.innerText = before + separator + content + suffix + after;
+                        geminiTalk(`Injected "${content}" into your Skills section! 💉✨`);
+                        return;
+                    }
+                }
+            } else if (type === 'rewrite') {
+                // For rewrites, if we find a section called EXPERIENCE, we prepend it there
+                const expHeader = "PROFESSIONAL EXPERIENCE";
+                const idx = resumeText.toUpperCase().indexOf(expHeader);
+                if (idx !== -1) {
+                    const insertPos = idx + expHeader.length;
+                    const before = resumeText.substring(0, insertPos);
+                    const after = resumeText.substring(insertPos);
+                    optimizedResume.innerText = before + "\n• " + content + after;
+                    geminiTalk(`Added high-impact bullet to your experience! ✍️🔥`);
+                    return;
+                }
+            }
+
+            // Fallback: Use Selection API if possible, else Append
             const selection = window.getSelection();
             if (selection.rangeCount > 0) {
                 const range = selection.getRangeAt(0);
                 if (optimizedResume.contains(range.commonAncestorContainer)) {
                     range.deleteContents();
-                    range.insertNode(document.createTextNode(text));
-                    geminiTalk("Applied! Your resume is getting stronger. 💪");
+                    range.insertNode(document.createTextNode(content));
+                    geminiTalk("Inserted at cursor position! 🎯");
                     return;
                 }
             }
-            // Fallback: Append
-            optimizedResume.innerText += "\n\n" + text;
-            geminiTalk("Added to optimized draft! ✏️");
+
+            // Absolute Fallback: Append at bottom
+            optimizedResume.innerText += "\n\n" + (type === 'keyword' ? `NEW SKILL: ${content}` : content);
+            geminiTalk("Added to the end of your resume draft! 📝");
         };
     }
 
