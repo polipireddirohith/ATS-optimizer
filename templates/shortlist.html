@@ -483,8 +483,29 @@
             }
         }
 
+        function updateStatistics(candidates) {
+            const totalCount = document.getElementById('totalCount');
+            const avgScoreEl = document.getElementById('avgScore');
+            const statusCountEl = document.getElementById('statusCount');
+
+            if (!candidates || candidates.length === 0) {
+                totalCount.textContent = '0';
+                avgScoreEl.textContent = '0';
+                statusCountEl.textContent = '0';
+                return;
+            }
+
+            const total = candidates.length;
+            const avgScore = candidates.reduce((sum, c) => sum + (c.total_score || 0), 0) / total;
+            const activeCount = candidates.filter(c => !['rejected', 'hired'].includes(c.status)).length;
+
+            totalCount.textContent = total;
+            avgScoreEl.textContent = Math.round(avgScore);
+            statusCountEl.textContent = activeCount;
+        }
+
         // Load shortlist on page load
-        loadShortlist();
+        document.addEventListener('DOMContentLoaded', loadShortlist);
     </script>
 </body>
 

@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
 </head>
 
 <body class="dashboard-layout">
@@ -36,7 +37,7 @@
         <div class="particles" id="particles"></div>
     </div>
 
-    <!-- Gemini AI Companion (Moved outside hero-visuals to ensure z-index works on top) -->
+    <!-- Gemini AI Companion -->
     <div class="ai-companion" id="aiCompanion">
         <div class="ai-orb">
             <div class="ai-core"></div>
@@ -64,358 +65,371 @@
         </div>
     </div>
 
-    <!-- Top Navbar -->
-    <nav class="top-navbar">
-        <div class="nav-container">
-            <div class="nav-logo">
+    <div class="app-layout">
+        <!-- New Left Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
                 <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
                     <rect width="32" height="32" rx="6" fill="var(--primary-color)" />
                     <path d="M16 8L20 12L16 16L12 12L16 8Z" fill="white" />
                     <path d="M16 16L20 20L16 24L12 20L16 16Z" fill="white" opacity="0.7" />
                 </svg>
-                <div class="logo-text">
-                    <span class="logo-main">ATS Analyzer</span>
-                    <span class="logo-tag">Free Forever</span>
-                </div>
-            </div>
-            <div class="nav-links">
-                <a href="#dashboard" class="active">Dashboard</a>
-                <a href="#score-info">Resume Score</a>
-                <a href="#optimize-info">Optimize</a>
-                <a href="/bulk" style="color: var(--accent-teal); font-weight: 600;">📊 Bulk Analysis</a>
-                <a href="/shortlist" style="color: var(--accent-purple); font-weight: 600;">⭐ Shortlist</a>
-                <a href="#about">About</a>
-            </div>
-            <div class="nav-actions">
-                <div class="role-toggle-container">
-                    <button class="role-btn active" data-role="candidate"
-                        onclick="setRole('candidate')">Candidate</button>
-                    <button class="role-btn" data-role="hr" onclick="setRole('hr')">HR Recruiter</button>
-                </div>
-                <div class="nav-theme-toggle">
-                    <button class="theme-toggle-btn" data-set-theme="default" title="Light Mode">☀️</button>
-                    <button class="theme-toggle-btn" data-set-theme="midnight" title="Enterprise Dark">🌙</button>
-                </div>
-                <button class="btn-primary-sm" onclick="document.getElementById('resumeFile').click()">
-                    <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor">
-                        <path
-                            d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" />
-                    </svg>
-                    Upload Resume
-                </button>
-            </div>
-        </div>
-    </nav>
-
-    <div class="app-container">
-        <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-nav">
-                <a href="#analysis" class="sidebar-item active">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-                    </svg>
-                    <span>Dashboard</span>
-                </a>
-                <a href="#keyword-match" class="sidebar-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
-                    </svg>
-                    <span>Keyword Insights</span>
-                </a>
-                <a href="#suitability" class="sidebar-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="8.5" cy="7" r="4"></circle>
-                    </svg>
-                    <span>Recruiter View</span>
-                </a>
-                <a href="#editor" class="sidebar-item">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                    </svg>
-                    <span>Optimization</span>
-                </a>
+                <div class="sidebar-title">ATS Analyzer</div>
             </div>
 
-            <div class="sidebar-user-progress">
-                <div class="level-badge" id="levelBadge">Lv. 1</div>
-                <div class="xp-container">
-                    <div class="xp-bar-bg">
-                        <div class="xp-bar-fill" id="xpBar"></div>
-                    </div>
-                    <span class="xp-text" id="xpText">0 / 500 XP</span>
-                </div>
-                <div class="level-name" id="levelName">Resume Rookie</div>
-            </div>
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="sidebar-link active">
+                    <span class="icon">🏠</span> Dashboard
+                </a>
+                <a href="#score-info" class="sidebar-link">
+                    <span class="icon">📈</span> Resume Score
+                </a>
+                <a href="#optimize-info" class="sidebar-link">
+                    <span class="icon">⚡</span> Optimize
+                </a>
+                <div style="height: 1px; background: var(--border-color); margin: 0.5rem 0;"></div>
+                <a href="/bulk" class="sidebar-link" style="color: var(--accent-teal);">
+                    <span class="icon">📊</span> Bulk Analysis
+                </a>
+                <a href="/shortlist" class="sidebar-link" style="color: var(--accent-purple);">
+                    <span class="icon">⭐</span> Shortlist
+                </a>
+            </nav>
 
             <div class="sidebar-footer">
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    ATS Logic: v2.4 (Active)
-                </div>
-                <div class="status-indicator" id="streakIndicator" style="margin-top: 0.5rem; display: none;">
-                    <div class="streak-flame-container">
+                <div class="sidebar-footer">
+                    <!-- Gamification Section -->
+                    <div class="sidebar-user-progress"
+                        style="margin-bottom: 1rem; padding: 1rem; background: var(--bg-alt); border-radius: 8px;">
                         <div
-                            style="width: 24px; height: 24px; border: 3px solid rgba(255,255,255,0.1); border-top-color: #f59e0b; border-radius: 50%; animation: spin 1s linear infinite;">
+                            style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                            <div class="level-badge" id="levelBadge"
+                                style="font-size: 0.75rem; padding: 0.2rem 0.5rem; background: var(--accent-teal); color: black; border-radius: 4px; font-weight: 700;">
+                                Lv. 1</div>
+                            <div class="level-name" id="levelName"
+                                style="font-size: 0.75rem; color: var(--text-muted);">Resume Rookie</div>
+                        </div>
+                        <div class="xp-container" style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="xp-bar-bg"
+                                style="flex: 1; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; overflow: hidden;">
+                                <div class="xp-bar-fill" id="xpBar"
+                                    style="height: 100%; width: 0%; background: var(--accent-teal); transition: width 0.3s ease;">
+                                </div>
+                            </div>
+                            <span class="xp-text" id="xpText"
+                                style="font-size: 0.7rem; color: var(--text-muted); white-space: nowrap;">0 / 500
+                                XP</span>
+                        </div>
+
+                        <div class="status-indicator" id="streakIndicator"
+                            style="margin-top: 0.75rem; display: none; align-items: center; gap: 0.5rem; font-size: 0.8rem;">
+                            <div class="streak-flame-container">
+                                <div
+                                    style="width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.1); border-top-color: #f59e0b; border-radius: 50%; animation: spin 1s linear infinite;">
+                                </div>
+                            </div>
+                            <span>Streak: <b id="streakCount" style="color: #f59e0b;">0</b> days</span>
                         </div>
                     </div>
-                    <span>Streak: <b id="streakCount">0</b> days</span>
+
+                    <div class="role-toggle-container" style="width: 100%;">
+                        <button class="role-btn active" data-role="candidate" onclick="setRole('candidate')"
+                            style="flex: 1;">Candidate</button>
+                        <button class="role-btn" data-role="hr" onclick="setRole('hr')" style="flex: 1;">HR</button>
+                    </div>
+
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.5rem;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted);">Theme</span>
+                        <div class="nav-theme-toggle">
+                            <button class="theme-toggle-btn" data-set-theme="default" title="Light Mode">☀️</button>
+                            <button class="theme-toggle-btn" data-set-theme="midnight"
+                                title="Enterprise Dark">🌙</button>
+                        </div>
+                    </div>
+
+                    <button class="btn-primary-sm" onclick="document.getElementById('resumeFile').click()"
+                        style="width: 100%; justify-content: center; margin-top: 1rem;">
+                        Upload Resume
+                    </button>
                 </div>
-            </div>
         </aside>
 
-        <!-- Main Content -->
+        <!-- Main Content Area -->
         <main class="main-content">
-            <!-- Workspace Area (Only visible before analysis) -->
-            <section id="uploadSection" class="workspace-grid">
-                <!-- Left: Resume Upload -->
-                <div class="workspace-card resume-dropzone">
-                    <div class="card-header">
-                        <h3>1. Resume Document</h3>
-                        <span class="badge">Required</span>
-                    </div>
-                    <form id="atsForm" class="hidden-form">
-                        <input type="file" id="resumeFile" name="resume_file" accept=".pdf,.docx,.txt" required>
-                    </form>
-                    <div class="drop-area" id="dropArea">
-                        <div class="drop-animation-container">
-                            <div
-                                style="width: 80px; height: 80px; border: 5px solid rgba(255,255,255,0.1); border-top-color: var(--accent-purple); border-radius: 50%; animation: spin 1.5s linear infinite;">
-                            </div>
-                        </div>
-                        <div class="drop-text">
-                            <h4>Drop your resume here.</h4>
-                            <p>We promise not to laugh. PDFs only—the robots are picky.</p>
-                        </div>
-                        <div class="file-info" id="selectedFileName" style="display: none;"></div>
-                    </div>
-                    <div class="preview-box">
-                        <div class="preview-header">ATS Text Analysis Preview</div>
-                        <div class="preview-content" id="resumePreview">
-                            No document uploaded yet. Your resume text will appear here for ATS parsing verification.
-                        </div>
-                    </div>
+            <div class="app-container">
+                <!-- Main Dashboard Header -->
+                <div class="dashboard-header" style="margin-bottom: 2rem;">
+                    <h1>Resume Analysis Dashboard</h1>
+                    <p class="subtitle">Upload your resume to get AI-powered insights</p>
                 </div>
-
-                <!-- Right: Job Description & Daily Challenge -->
-                <div class="workspace-card-stack">
-                    <div class="workspace-card daily-challenge-card" id="dailyChallengeCard">
+                <!-- Workspace Area (Only visible before analysis) -->
+                <section id="uploadSection" class="workspace-grid">
+                    <!-- Left: Resume Upload -->
+                    <div class="workspace-card resume-dropzone">
                         <div class="card-header">
-                            <h3>🎯 Daily Challenge</h3>
-                            <span class="xp-bonus">+100 XP</span>
-                        </div>
-                        <p id="challengeText">Improve your ATS score by 1 point today!</p>
-                        <div class="challenge-progress-mini">
-                            <div class="progress-dot" id="challengeDot"></div>
-                            <span id="challengeStatus">In Progress</span>
-                        </div>
-                    </div>
-
-                    <div class="workspace-card jd-input-area">
-                        <div class="card-header">
-                            <h3>2. Job Description</h3>
+                            <h3>1. Resume Document</h3>
                             <span class="badge">Required</span>
                         </div>
-                        <textarea id="jdText"
-                            placeholder="Paste the job requirements, responsibilities, and key skills here to start the matching process..."
-                            required></textarea>
-                        <div class="workspace-footer">
-                            <div class="jd-stats">
-                                <span id="charCount">0</span> characters
+                        <form id="atsForm" class="hidden-form">
+                            <input type="file" id="resumeFile" name="resume_file" accept=".pdf,.docx,.txt" required>
+                        </form>
+                        <div class="drop-area" id="dropArea">
+                            <div class="drop-animation-container">
+                                <div
+                                    style="width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; font-size: 3rem; color: var(--accent-purple);">
+                                    📄
+                                </div>
                             </div>
-                            <button type="button" id="analyzeBtn" class="btn-primary">
-                                <span>Analyze Match</span>
-                            </button>
-                        </div>
-                    </div> <!-- Closes workspace-card-stack -->
-                </div> <!-- Closes jd-input-area (redundant but safe if original had it) - wait let's check. -->
-            </section>
-
-            <!-- Loading State -->
-            <section class="loading-section" id="loadingSection" style="display: none;">
-                <div class="loading-card">
-                    <div class="lottie-loader">
-                        <div
-                            style="width: 100px; height: 100px; border: 6px solid rgba(255,255,255,0.1); border-top-color: var(--accent-teal); border-radius: 50%; animation: spin 1.2s linear infinite; margin: 0 auto;">
-                        </div>
-                    </div>
-                    <h3>Scanning… judging… analyzing… okay mostly analyzing.</h3>
-                    <p id="loadingStep">ATS robots are reading very carefully 👓</p>
-                </div>
-            </section>
-
-            <!-- Results Section (Dashboard) -->
-            <section class="results-layout" id="resultsSection" style="display: none;">
-                <!-- Result Sidebar / Summary -->
-                <div class="analysis-summary">
-                    <div class="score-widget">
-                        <div class="widget-label">ATS Match Score</div>
-                        <div class="score-circle-container">
-                            <svg viewBox="0 0 100 100">
-                                <circle class="bg" cx="50" cy="50" r="45"></circle>
-                                <circle class="meter" id="scoreRing" cx="50" cy="50" r="45"></circle>
-                            </svg>
-                            <div class="score-text">
-                                <span id="scoreNumber">0</span>
-                                <small>%</small>
+                            <div class="drop-text">
+                                <h4>Drop your resume here.</h4>
+                                <p>We promise not to laugh. PDFs only—the robots are picky.</p>
                             </div>
+                            <div class="file-info" id="selectedFileName" style="display: none;"></div>
                         </div>
-                        <div id="scoreStatus" class="score-verdict">Calculating...</div>
-                    </div>
-
-                    <div class="quick-breakdown">
-                        <h4>Impact Factors</h4>
-                        <div id="breakdownGrid" class="breakdown-grid">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-
-                    <!-- Candidate Actions -->
-                    <div class="action-buttons candidate-only">
-                        <button class="btn-primary-full" id="downloadReportBtn">Download Stats</button>
-                        <button class="btn-secondary-full" id="newAnalysisBtn">Optimize Below</button>
-                        <button class="btn-secondary-full" id="resetAnalysisBtn"
-                            style="margin-top: 0.5rem; opacity: 0.8; font-size: 0.75rem;">Start New Search</button>
-                    </div>
-
-                    <!-- HR Recruiter Tools -->
-                    <div class="hr-controls hr-only" id="hrControls">
-                        <div class="hr-status-msg" id="hrVisibilityMsg">Checking visibility...</div>
-                        <div id="hrContactInfo" class="hr-contact-info-block"></div> <!-- NEW -->
-                        <div class="hr-buttons">
-                            <button class="btn-primary-full" id="unlockBtn" disabled>Unlock Contact Details</button>
-                            <button class="btn-secondary-full" id="shortlistBtn">Shortlist Candidate</button>
-                            <button class="btn-secondary-full" id="hrNewAnalysisBtn"
-                                style="margin-top:0.5rem; opacity: 0.8; font-size: 0.75rem;">Analyze New Resume</button>
-                            <button class="btn-secondary-full" id="addNoteBtn" style="margin-top:0.5rem;">Add Internal
-                                Note</button>
-                        </div>
-                    </div>
-
-                    <!-- Achievements Sidebar Widget -->
-                    <div class="achievements-widget">
-                        <h4>🏆 Recent Achievements</h4>
-                        <div id="achievementsList" class="achievements-mini-list">
-                            <!-- Populated via JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Detailed Analysis Panels -->
-                <div class="analysis-panels">
-                    <!-- Requirements Comparison Card -->
-                    <div class="panel-card" id="requirements-comparison">
-                        <div class="panel-header">
-                            <h3>📋 Requirements vs Resume Comparison</h3>
-                        </div>
-                        <div id="comparisonContainer" class="comparison-grid">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-
-                    <!-- Keyword Insights Card -->
-                    <div class="panel-card" id="keyword-match">
-                        <div class="panel-header">
-                            <h3>Keyword & Skill Insights</h3>
-                        </div>
-                        <div id="gapsContainer" class="keyword-mesh">
-                            <!-- Dynamically populated -->
-                        </div>
-                    </div>
-
-                    <!-- Suitable Assessment -->
-                    <div class="panel-card" id="suitability">
-                        <div class="panel-header">
-                            <h3>HR Suitability Verdict</h3>
-                        </div>
-                        <div class="suitability-content">
-                            <div class="verdict-banner" id="suitabilityVerdict">High Potential</div>
-                            <p class="recommendation-note" id="suitabilityRecommendation"></p>
-                            <div id="recruiterInsights" class="insights-list"></div>
-                        </div>
-                    </div>
-
-                    <!-- Optimization Editor -->
-                    <div class="panel-card" id="editor">
-                        <div class="panel-header">
-                            <h3>ATS-Friendly Optimization Workspace</h3>
-                            <button class="btn-teal-sm" id="downloadResumeBtn">Export PDF</button>
-                        </div>
-                        <div class="editor-interface">
-                            <div class="inline-editor" id="optimizedResume" contenteditable="true"></div>
-                            <div class="suggestions-rail">
-                                <h4>Optimization Path</h4>
-                                <div id="improvementsContainer"></div>
+                        <div class="preview-box">
+                            <div class="preview-header">ATS Text Analysis Preview</div>
+                            <div class="preview-content" id="resumePreview">
+                                No document uploaded yet. Your resume text will appear here for ATS parsing
+                                verification.
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
 
-            <!-- Info Sections (About, Score Info, Optimize Info) -->
-            <section id="aboutSection" class="info-layout" style="display: none;">
-                <div class="panel-card info-card">
-                    <div class="info-header">
-                        <span class="info-icon">🏢</span>
-                        <h2>About ATS Analyzer</h2>
-                    </div>
-                    <div class="info-body">
-                        <p class="premium-text">Built for the modern job seeker. Our mission is to bridge the gap
-                            between talented individuals and complex screening algorithms. By providing enterprise-grade
-                            analysis tools for free, we ensure everyone has a fair shot at their dream career.</p>
-                        <div class="feature-grid">
-                            <div class="feature-item">
-                                <strong>Enterprise Logic</strong>
-                                <p>Mimics systems like Workday, Greenhouse, and Lever.</p>
+                    <!-- Right: Job Description & Daily Challenge -->
+                    <div class="workspace-card-stack">
+                        <div class="workspace-card daily-challenge-card" id="dailyChallengeCard">
+                            <div class="card-header">
+                                <h3>🎯 Daily Challenge</h3>
+                                <span class="xp-bonus">+100 XP</span>
                             </div>
-                            <div class="feature-item">
-                                <strong>Privacy First</strong>
-                                <p>Your data is processed and never sold to third parties.</p>
+                            <p id="challengeText">Improve your ATS score by 1 point today!</p>
+                            <div class="challenge-progress-mini">
+                                <div class="progress-dot" id="challengeDot"></div>
+                                <span id="challengeStatus">In Progress</span>
+                            </div>
+                        </div>
+
+                        <div class="workspace-card jd-input-area">
+                            <div class="card-header">
+                                <h3>2. Job Description</h3>
+                                <span class="badge">Required</span>
+                            </div>
+                            <textarea id="jdText"
+                                placeholder="Paste the job requirements, responsibilities, and key skills here to start the matching process..."
+                                required></textarea>
+                            <div class="workspace-footer">
+                                <div class="jd-stats">
+                                    <span id="charCount">0</span> characters
+                                </div>
+                                <button type="button" id="analyzeBtn" class="btn-primary">
+                                    <span>Analyze Match</span>
+                                </button>
+                            </div>
+                        </div> <!-- Closes workspace-card-stack -->
+                    </div> <!-- Closes jd-input-area (redundant but safe if original had it) - wait let's check. -->
+                </section>
+
+                <!-- Loading State -->
+                <section class="loading-section" id="loadingSection" style="display: none;">
+                    <div class="loading-card">
+                        <div class="lottie-loader">
+                            <div
+                                style="width: 100px; height: 100px; border: 6px solid rgba(255,255,255,0.1); border-top-color: var(--accent-teal); border-radius: 50%; animation: spin 1.2s linear infinite; margin: 0 auto;">
+                            </div>
+                        </div>
+                        <h3>Scanning… judging… analyzing… okay mostly analyzing.</h3>
+                        <p id="loadingStep">ATS robots are reading very carefully 👓</p>
+                    </div>
+                </section>
+
+                <!-- Results Section (Dashboard) -->
+                <section class="results-layout" id="resultsSection" style="display: none;">
+                    <!-- Result Sidebar / Summary -->
+                    <div class="analysis-summary">
+                        <div class="score-widget">
+                            <div class="widget-label">ATS Match Score</div>
+                            <div class="score-circle-container">
+                                <svg viewBox="0 0 100 100">
+                                    <circle class="bg" cx="50" cy="50" r="45"></circle>
+                                    <circle class="meter" id="scoreRing" cx="50" cy="50" r="45"></circle>
+                                </svg>
+                                <div class="score-text">
+                                    <span id="scoreNumber">0</span>
+                                    <small>%</small>
+                                </div>
+                            </div>
+                            <div id="scoreStatus" class="score-verdict">Calculating...</div>
+                        </div>
+
+                        <div class="quick-breakdown">
+                            <h4>Impact Factors</h4>
+                            <div id="breakdownGrid" class="breakdown-grid">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+
+                        <!-- Candidate Actions -->
+                        <div class="action-buttons candidate-only">
+                            <button class="btn-primary-full" id="downloadReportBtn">Download Stats</button>
+                            <button class="btn-secondary-full" id="newAnalysisBtn">Optimize Below</button>
+                            <button class="btn-secondary-full" id="resetAnalysisBtn"
+                                style="margin-top: 0.5rem; opacity: 0.8; font-size: 0.75rem;">Start New
+                                Search</button>
+                        </div>
+
+                        <!-- HR Recruiter Tools -->
+                        <div class="hr-controls hr-only" id="hrControls">
+                            <div class="hr-status-msg" id="hrVisibilityMsg">Checking visibility...</div>
+                            <div id="hrContactInfo" class="hr-contact-info-block"></div> <!-- NEW -->
+                            <div class="hr-buttons">
+                                <button class="btn-primary-full" id="unlockBtn" disabled>Unlock Contact
+                                    Details</button>
+                                <button class="btn-secondary-full" id="shortlistBtn">Shortlist Candidate</button>
+                                <button class="btn-secondary-full" id="hrNewAnalysisBtn"
+                                    style="margin-top:0.5rem; opacity: 0.8; font-size: 0.75rem;">Analyze New
+                                    Resume</button>
+                                <button class="btn-secondary-full" id="addNoteBtn" style="margin-top:0.5rem;">Add
+                                    Internal
+                                    Note</button>
+                            </div>
+                        </div>
+
+                        <!-- Achievements Sidebar Widget -->
+                        <div class="achievements-widget">
+                            <h4>🏆 Recent Achievements</h4>
+                            <div id="achievementsList" class="achievements-mini-list">
+                                <!-- Populated via JS -->
                             </div>
                         </div>
                     </div>
-                </div>
 
-                <div class="panel-card info-card" id="scoreInfo">
-                    <div class="info-header">
-                        <span class="info-icon">📊</span>
-                        <h2>How Scoring Works</h2>
-                    </div>
-                    <div class="info-body">
-                        <p>Our algorithm analyzes your resume across 4 critical pillars: Keyword Match, Skill Recalling,
-                            Experience Alignment, and Formatting. We use weighted vectors to ensure that mandatory job
-                            requirements carry the most impact.</p>
-                        <ul class="info-list">
-                            <li><strong>Keywords (40%):</strong> Hard skills and domain-specific terminology.</li>
-                            <li><strong>Skills (25%):</strong> Categorized technical and soft competencies.</li>
-                            <li><strong>Experience (15%):</strong> Alignment with role seniority and responsibilities.
-                            </li>
-                            <li><strong>Formatting (10%):</strong> ATS-readability and document structure.</li>
-                        </ul>
-                    </div>
-                </div>
+                    <!-- Detailed Analysis Panels -->
+                    <div class="analysis-panels">
+                        <!-- Requirements Comparison Card -->
+                        <div class="panel-card" id="requirements-comparison">
+                            <div class="panel-header">
+                                <h3>📋 Requirements vs Resume Comparison</h3>
+                            </div>
+                            <div id="comparisonContainer" class="comparison-grid">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
 
-                <div class="panel-card info-card" id="optimizeInfo">
-                    <div class="info-header">
-                        <span class="info-icon">✨</span>
-                        <h2>AI Optimization</h2>
-                    </div>
-                    <div class="info-body">
-                        <p>The optimization workspace uses AI to suggest real-time improvements. From 'STAR' method
-                            bullet point rewrites to missing keyword insertions, we help you transform your resume into
-                            its most powerful version.</p>
-                        <div class="suggestion-preview">
-                            <div class="suggestion-card">
-                                <strong>STAR Method</strong>
-                                <p>Rewriting "Worked on sales" to "Architected a new sales funnel increasing conversion
-                                    by 20%."</p>
+                        <!-- Keyword Insights Card -->
+                        <div class="panel-card" id="keyword-match">
+                            <div class="panel-header">
+                                <h3>Keyword & Skill Insights</h3>
+                            </div>
+                            <div id="gapsContainer" class="keyword-mesh">
+                                <!-- Dynamically populated -->
+                            </div>
+                        </div>
+
+                        <!-- Suitable Assessment -->
+                        <div class="panel-card" id="suitability">
+                            <div class="panel-header">
+                                <h3>HR Suitability Verdict</h3>
+                            </div>
+                            <div class="suitability-content">
+                                <div class="verdict-banner" id="suitabilityVerdict">High Potential</div>
+                                <p class="recommendation-note" id="suitabilityRecommendation"></p>
+                                <div id="recruiterInsights" class="insights-list"></div>
+                            </div>
+                        </div>
+
+                        <!-- Optimization Editor -->
+                        <div class="panel-card" id="editor">
+                            <div class="panel-header">
+                                <h3>ATS-Friendly Optimization Workspace</h3>
+                                <button class="btn-teal-sm" id="downloadResumeBtn">Export PDF</button>
+                            </div>
+                            <div class="editor-interface">
+                                <div class="inline-editor" id="optimizedResume" contenteditable="true"></div>
+                                <div class="suggestions-rail">
+                                    <h4>Optimization Path</h4>
+                                    <div id="improvementsContainer"></div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </section>
+                </section>
+
+                <!-- Info Sections (About, Score Info, Optimize Info) -->
+                <section id="aboutSection" class="info-layout" style="display: none;">
+                    <div class="panel-card info-card">
+                        <div class="info-header">
+                            <span class="info-icon">🏢</span>
+                            <h2>About ATS Analyzer</h2>
+                        </div>
+                        <div class="info-body">
+                            <p class="premium-text">Built for the modern job seeker. Our mission is to bridge the
+                                gap
+                                between talented individuals and complex screening algorithms. By providing
+                                enterprise-grade
+                                analysis tools for free, we ensure everyone has a fair shot at their dream career.
+                            </p>
+                            <div class="feature-grid">
+                                <div class="feature-item">
+                                    <strong>Enterprise Logic</strong>
+                                    <p>Mimics systems like Workday, Greenhouse, and Lever.</p>
+                                </div>
+                                <div class="feature-item">
+                                    <strong>Privacy First</strong>
+                                    <p>Your data is processed and never sold to third parties.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="panel-card info-card" id="scoreInfo">
+                        <div class="info-header">
+                            <span class="info-icon">📊</span>
+                            <h2>How Scoring Works</h2>
+                        </div>
+                        <div class="info-body">
+                            <p>Our algorithm analyzes your resume across 4 critical pillars: Keyword Match, Skill
+                                Recalling,
+                                Experience Alignment, and Formatting. We use weighted vectors to ensure that
+                                mandatory job
+                                requirements carry the most impact.</p>
+                            <ul class="info-list">
+                                <li><strong>Keywords (40%):</strong> Hard skills and domain-specific terminology.
+                                </li>
+                                <li><strong>Skills (25%):</strong> Categorized technical and soft competencies.</li>
+                                <li><strong>Experience (15%):</strong> Alignment with role seniority and
+                                    responsibilities.
+                                </li>
+                                <li><strong>Formatting (10%):</strong> ATS-readability and document structure.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="panel-card info-card" id="optimizeInfo">
+                        <div class="info-header">
+                            <span class="info-icon">✨</span>
+                            <h2>AI Optimization</h2>
+                        </div>
+                        <div class="info-body">
+                            <p>The optimization workspace uses AI to suggest real-time improvements. From 'STAR'
+                                method
+                                bullet point rewrites to missing keyword insertions, we help you transform your
+                                resume into
+                                its most powerful version.</p>
+                            <div class="suggestion-preview">
+                                <div class="suggestion-card">
+                                    <strong>STAR Method</strong>
+                                    <p>Rewriting "Worked on sales" to "Architected a new sales funnel increasing
+                                        conversion
+                                        by 20%."</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+
         </main>
     </div>
 
