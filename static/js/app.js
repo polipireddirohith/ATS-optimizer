@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const scoreRing = document.getElementById('scoreRing');
     const scoreStatus = document.getElementById('scoreStatus');
     const breakdownGrid = document.getElementById('breakdownGrid');
+    const comparisonContainer = document.getElementById('comparisonContainer');
     const gapsContainer = document.getElementById('gapsContainer');
     const suitabilityVerdict = document.getElementById('suitabilityVerdict');
     const suitabilityRecommendation = document.getElementById('suitabilityRecommendation');
@@ -430,7 +431,146 @@ document.addEventListener('DOMContentLoaded', () => {
             breakdownGrid.appendChild(row);
         });
 
-        // 3. Keywords
+        // 3. Requirements Comparison Grid
+        if (comparisonContainer) {
+            let comparisonHtml = '';
+
+            // Skills Comparison
+            const mandatorySkills = data.jd_data.mandatory_skills || [];
+            const resumeSkills = data.resume_data.skills || [];
+            const matchedSkills = data.suitability.matched_skills || [];
+            const missingSkills = data.suitability.missing_skills || [];
+
+            comparisonHtml += `
+                <div class="comparison-row">
+                    <div class="comparison-category">
+                        <h4>💼 Technical Skills</h4>
+                    </div>
+                    <div class="comparison-content">
+                        <div class="comparison-col">
+                            <div class="col-header">Required by JD</div>
+                            <div class="col-items">
+                                ${mandatorySkills.length > 0 ? mandatorySkills.map(s => `<span class="req-item">${s}</span>`).join('') : '<span class="no-data">No specific skills required</span>'}
+                            </div>
+                        </div>
+                        <div class="comparison-status">
+                            <span class="status-badge ${matchedSkills.length === mandatorySkills.length && mandatorySkills.length > 0 ? 'status-match' : missingSkills.length > 0 ? 'status-partial' : 'status-none'}">
+                                ${matchedSkills.length}/${mandatorySkills.length} Match
+                            </span>
+                        </div>
+                        <div class="comparison-col">
+                            <div class="col-header">Found in Resume</div>
+                            <div class="col-items">
+                                ${matchedSkills.length > 0 ? matchedSkills.map(s => `<span class="resume-item matched">✓ ${s}</span>`).join('') : ''}
+                                ${missingSkills.length > 0 ? missingSkills.map(s => `<span class="resume-item missing">✗ ${s}</span>`).join('') : ''}
+                                ${matchedSkills.length === 0 && missingSkills.length === 0 ? '<span class="no-data">No matching skills detected</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Education Comparison
+            const eduRequired = data.suitability.education_required || 'Not specified';
+            const eduFound = data.suitability.resume_education || [];
+            const eduMatch = data.suitability.education_match;
+
+            comparisonHtml += `
+                <div class="comparison-row">
+                    <div class="comparison-category">
+                        <h4>🎓 Education</h4>
+                    </div>
+                    <div class="comparison-content">
+                        <div class="comparison-col">
+                            <div class="col-header">Required by JD</div>
+                            <div class="col-items">
+                                <span class="req-item">${eduRequired}</span>
+                            </div>
+                        </div>
+                        <div class="comparison-status">
+                            <span class="status-badge ${eduMatch ? 'status-match' : eduRequired === 'Not specified' ? 'status-none' : 'status-no-match'}">
+                                ${eduMatch ? '✓ Match' : eduRequired === 'Not specified' ? 'N/A' : '✗ No Match'}
+                            </span>
+                        </div>
+                        <div class="comparison-col">
+                            <div class="col-header">Found in Resume</div>
+                            <div class="col-items">
+                                ${eduFound.length > 0 ? eduFound.map(e => `<span class="resume-item ${eduMatch ? 'matched' : 'partial'}">${e}</span>`).join('') : '<span class="no-data">No education detected</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Certifications Comparison
+            const certsRequired = data.jd_data.required_certifications || [];
+            const certsMatched = data.suitability.matched_certifications || [];
+            const certsMissing = data.suitability.missing_certifications || [];
+
+            comparisonHtml += `
+                <div class="comparison-row">
+                    <div class="comparison-category">
+                        <h4>📜 Certifications</h4>
+                    </div>
+                    <div class="comparison-content">
+                        <div class="comparison-col">
+                            <div class="col-header">Required by JD</div>
+                            <div class="col-items">
+                                ${certsRequired.length > 0 ? certsRequired.map(c => `<span class="req-item">${c}</span>`).join('') : '<span class="no-data">No certifications required</span>'}
+                            </div>
+                        </div>
+                        <div class="comparison-status">
+                            <span class="status-badge ${certsMatched.length === certsRequired.length && certsRequired.length > 0 ? 'status-match' : certsMissing.length > 0 ? 'status-partial' : 'status-none'}">
+                                ${certsMatched.length}/${certsRequired.length} Match
+                            </span>
+                        </div>
+                        <div class="comparison-col">
+                            <div class="col-header">Found in Resume</div>
+                            <div class="col-items">
+                                ${certsMatched.length > 0 ? certsMatched.map(c => `<span class="resume-item matched">✓ ${c}</span>`).join('') : ''}
+                                ${certsMissing.length > 0 ? certsMissing.map(c => `<span class="resume-item missing">✗ ${c}</span>`).join('') : ''}
+                                ${certsMatched.length === 0 && certsMissing.length === 0 ? '<span class="no-data">No certifications detected</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Experience Comparison
+            const expRequired = data.jd_data.experience_required || 'Not specified';
+            const expSummary = data.suitability.experience_summary || [];
+
+            comparisonHtml += `
+                <div class="comparison-row">
+                    <div class="comparison-category">
+                        <h4>💼 Experience</h4>
+                    </div>
+                    <div class="comparison-content">
+                        <div class="comparison-col">
+                            <div class="col-header">Required by JD</div>
+                            <div class="col-items">
+                                <span class="req-item">${expRequired}</span>
+                            </div>
+                        </div>
+                        <div class="comparison-status">
+                            <span class="status-badge status-none">
+                                Review
+                            </span>
+                        </div>
+                        <div class="comparison-col">
+                            <div class="col-header">Found in Resume</div>
+                            <div class="col-items">
+                                ${expSummary.length > 0 ? expSummary.slice(0, 3).map(e => `<span class="resume-item partial">${e}</span>`).join('') : '<span class="no-data">No relevant experience detected</span>'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            comparisonContainer.innerHTML = comparisonHtml;
+        }
+
+        // 4. Keywords
         gapsContainer.innerHTML = '';
         if (data.score.breakdown.skills_match.matched) {
             data.score.breakdown.skills_match.matched.forEach(skill => addKeywordPill(skill, 'matched'));
