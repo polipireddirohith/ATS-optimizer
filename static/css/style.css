@@ -283,6 +283,8 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    cursor: pointer;
+    flex-shrink: 0;
 }
 
 .logo-text {
@@ -296,6 +298,7 @@ body {
     font-size: 1.1rem;
     color: var(--primary-color);
     letter-spacing: -0.02em;
+    white-space: nowrap;
 }
 
 .logo-tag {
@@ -310,6 +313,7 @@ body {
     gap: 2rem;
     margin-left: 3rem;
     flex: 1;
+    overflow: hidden;
 }
 
 .nav-links a {
@@ -320,6 +324,7 @@ body {
     transition: color 0.15s;
     padding: 0.5rem 0;
     position: relative;
+    white-space: nowrap;
 }
 
 .nav-links a.active {
@@ -341,6 +346,10 @@ body {
     display: flex;
     flex: 1;
     padding-top: var(--navbar-height);
+}
+
+.nav-actions {
+    flex-shrink: 0;
 }
 
 /* ==================== Sidebar ==================== */
@@ -374,6 +383,7 @@ body {
     font-size: 0.9rem;
     font-weight: 500;
     transition: all 0.2s;
+    white-space: nowrap;
 }
 
 .sidebar-item svg {

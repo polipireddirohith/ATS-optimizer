@@ -145,9 +145,52 @@ document.addEventListener('DOMContentLoaded', () => {
         charCount.textContent = jdInput.value.length;
     });
 
+    // Navigation Logic
+    function showUpload() {
+        resultsSection.style.display = 'none';
+        uploadSection.style.display = 'grid';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Reset sidebar items
+        sidebarItems.forEach(i => i.classList.remove('active'));
+        sidebarItems[0].classList.add('active');
+    }
+
+    // Top Nav Links
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            if (link.getAttribute('href') === '#' || link.textContent === 'Dashboard') {
+                e.preventDefault();
+                showUpload();
+                navLinks.forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+            }
+        });
+    });
+
+    // Logo Click
+    document.querySelector('.nav-logo').addEventListener('click', () => {
+        showUpload();
+        navLinks.forEach(l => l.classList.remove('active'));
+        navLinks[0].classList.add('active');
+    });
+
     // Sidebar Navigation
     sidebarItems.forEach(item => {
         item.addEventListener('click', (e) => {
+            const href = item.getAttribute('href');
+            if (href.startsWith('#')) {
+                // If we're in results, scroll to panel
+                if (resultsSection.style.display !== 'none') {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                } else if (href === '#analysis') {
+                    e.preventDefault();
+                    showUpload();
+                }
+            }
             sidebarItems.forEach(i => i.classList.remove('active'));
             item.classList.add('active');
         });
