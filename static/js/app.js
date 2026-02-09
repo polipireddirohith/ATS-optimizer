@@ -1,6 +1,6 @@
 /**
- * ATS Resume Analyzer - Enterprise SaaS Frontend Logic
- * Inspired by Manatal and modern recruiter ATS systems.
+ * ATS Resume Analyzer - Gamified Frontend Logic
+ * Features: XP, Levels, Streaks, Daily Challenges, and Emotional Mascot.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -21,6 +21,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarItems = document.querySelectorAll('.sidebar-item');
     const navLinks = document.querySelectorAll('.nav-links a');
 
+    // Gamification Elements
+    const xpBar = document.getElementById('xpBar');
+    const xpText = document.getElementById('xpText');
+    const levelBadge = document.getElementById('levelBadge');
+    const levelName = document.getElementById('levelName');
+    const streakCount = document.getElementById('streakCount');
+    const challengeText = document.getElementById('challengeText');
+    const challengeDot = document.getElementById('challengeDot');
+    const challengeStatus = document.getElementById('challengeStatus');
+    const achievementsList = document.getElementById('achievementsList');
+
     // Core Results Widgets
     const scoreNumber = document.getElementById('scoreNumber');
     const scoreRing = document.getElementById('scoreRing');
@@ -37,6 +48,87 @@ document.addEventListener('DOMContentLoaded', () => {
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const downloadResumeBtn = document.getElementById('downloadResumeBtn');
+
+    // ==================== Gamification Core ====================
+
+    const gameState = {
+        xp: parseInt(localStorage.getItem('ats_xp') || '0'),
+        level: parseInt(localStorage.getItem('ats_level') || '1'),
+        streak: parseInt(localStorage.getItem('ats_streak') || '0'),
+        lastVisit: localStorage.getItem('ats_last_visit'),
+        achievements: JSON.parse(localStorage.getItem('ats_achievements') || '[]'),
+        dailyChallengeDone: localStorage.getItem('ats_daily_done') === new Date().toDateString()
+    };
+
+    const levels = [
+        { minXp: 0, name: "Resume Rookie" },
+        { minXp: 500, name: "ATS Explorer" },
+        { minXp: 1500, name: "Keyword Ninja" },
+        { minXp: 3500, name: "Resume Pro" },
+        { minXp: 7000, name: "Recruiter-Ready" }
+    ];
+
+    function saveState() {
+        localStorage.setItem('ats_xp', gameState.xp);
+        localStorage.setItem('ats_level', gameState.level);
+        localStorage.setItem('ats_streak', gameState.streak);
+        localStorage.setItem('ats_achievements', JSON.stringify(gameState.achievements));
+    }
+
+    function addXp(amount, reason) {
+        gameState.xp += amount;
+        if (reason) geminiTalk(`+${amount} XP: ${reason} ✨`, 2000);
+        updateXpUi();
+        checkLevelUp();
+        saveState();
+    }
+
+    function updateXpUi() {
+        const currentLevel = levels[gameState.level - 1];
+        const nextLevel = levels[gameState.level] || { minXp: gameState.xp + 1000 };
+        const progress = ((gameState.xp - currentLevel.minXp) / (nextLevel.minXp - currentLevel.minXp)) * 100;
+
+        xpBar.style.width = `${Math.min(progress, 100)}%`;
+        xpText.textContent = `${gameState.xp} / ${nextLevel.minXp} XP`;
+        levelBadge.textContent = `Lv. ${gameState.level}`;
+        levelName.textContent = currentLevel.name;
+    }
+
+    function checkLevelUp() {
+        const nextLevel = levels[gameState.level];
+        if (nextLevel && gameState.xp >= nextLevel.minXp) {
+            gameState.level++;
+            geminiTalk(`LEVEL UP! You are now a ${nextLevel.name}! 🎉`, 5000);
+            triggerConfetti();
+            updateXpUi();
+        }
+    }
+
+    function unlockAchievement(id, title, icon) {
+        if (gameState.achievements.find(a => a.id === id)) return;
+
+        const achievement = { id, title, icon, date: new Date().toLocaleDateString() };
+        gameState.achievements.unshift(achievement);
+        renderAchievements();
+        geminiTalk(`ACHIEVEMENT UNLOCKED: ${title} 🏆`, 4000);
+        addXp(250, "Achievement Unlocked");
+        saveState();
+    }
+
+    function renderAchievements() {
+        if (!achievementsList) return;
+        achievementsList.innerHTML = gameState.achievements.slice(0, 3).map(a => `
+            <div class="achievement-mini-item">
+                <div class="achievement-icon">${a.icon}</div>
+                <div class="achievement-info">
+                    <strong>${a.title}</strong>
+                    <span>${a.date}</span>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    // ==================== Logic ====================
 
     // Theme Management
     const themeBtns = document.querySelectorAll('[data-set-theme]');
@@ -56,223 +148,134 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
     }
 
-    // Particle Generation
-    function createNodes() {
-        const container = document.getElementById('particles');
-        if (!container) return;
+    // Initialize UI
+    updateXpUi();
+    renderAchievements();
 
-        for (let i = 0; i < 20; i++) {
-            const node = document.createElement('div');
-            Object.assign(node.style, {
-                position: 'absolute',
-                width: '3px',
-                height: '3px',
-                background: 'var(--accent-teal)',
-                borderRadius: '50%',
-                top: Math.random() * 100 + '%',
-                left: Math.random() * 100 + '%',
-                opacity: '0.1',
-                pointerEvents: 'none',
-                boxShadow: '0 0 10px var(--accent-teal)'
-            });
-            container.appendChild(node);
-
-            node.animate([
-                { transform: 'translate(0, 0)', opacity: 0.1 },
-                { transform: `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`, opacity: 0.3 }
-            ], {
-                duration: 5000 + Math.random() * 5000,
-                iterations: Infinity,
-                direction: 'alternate',
-                easing: 'ease-in-out'
-            });
+    // Streak & Daily
+    const today = new Date().toDateString();
+    if (gameState.lastVisit !== today) {
+        if (gameState.lastVisit) {
+            const lastDate = new Date(gameState.lastVisit);
+            const diff = (new Date() - lastDate) / (1000 * 60 * 60 * 24);
+            if (diff <= 1.5) {
+                gameState.streak++;
+            } else {
+                geminiTalk("Your streak missed you yesterday! 🥺 Let's rebuild it.", 5000);
+            }
+        } else {
+            gameState.streak = 1;
         }
+        gameState.lastVisit = today;
+        localStorage.setItem('ats_last_visit', today);
+        saveState();
     }
-    createNodes();
 
-    // ==================== Workspace Logic ====================
+    if (gameState.streak > 0) {
+        document.getElementById('streakIndicator').style.display = 'flex';
+        streakCount.textContent = gameState.streak;
+    }
 
-    // Trigger file input
+    if (gameState.dailyChallengeDone) {
+        challengeDot.classList.add('completed');
+        challengeStatus.textContent = "Completed";
+    }
+
+    // ==================== Workspace Interaction ====================
+
     dropArea.addEventListener('click', () => fileInput.click());
 
-    // File selection handler
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
             handleFileSelect(e.target.files[0]);
+            geminiTalk("Awesome resume! Reading those professional secrets... 📄✨");
+            addXp(50, "Resume Uploaded");
+            triggerSparkle();
         }
     });
 
     // Drag and Drop
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, preventDefaults, false);
+        dropArea.addEventListener(eventName, e => { e.preventDefault(); e.stopPropagation(); });
     });
 
-    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
-
     ['dragenter', 'dragover'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.add('active'), false);
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('active'));
     });
 
     ['dragleave', 'drop'].forEach(eventName => {
-        dropArea.addEventListener(eventName, () => dropArea.classList.remove('active'), false);
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('active'));
     });
 
     dropArea.addEventListener('drop', (e) => {
-        const dt = e.dataTransfer;
-        const file = dt.files[0];
+        const file = e.dataTransfer.files[0];
         handleFileSelect(file);
+        addXp(50, "Resume Dropped");
     });
 
     function handleFileSelect(file) {
         selectedFileName.textContent = `Selected: ${file.name}`;
         selectedFileName.style.display = 'block';
-
-        // Simulating immediate text extraction preview
         const reader = new FileReader();
         reader.onload = (e) => {
-            // Only preview text if it looks like a text-readable file (basic heuristic)
-            if (file.type === 'text/plain') {
-                resumePreview.textContent = e.target.result;
-            } else {
-                resumePreview.textContent = `[ATS View: ${file.name} - Ready for backend parsing. Professional ATS systems will extract keywords from this ${file.type.split('/')[1].toUpperCase()} document.]`;
-            }
+            resumePreview.textContent = file.type === 'text/plain' ? e.target.result : `[ATS Analysis View: ${file.name} ready for bot-reading!]`;
         };
         reader.readAsText(file);
     }
 
-    // JD Character Count
     jdInput.addEventListener('input', () => {
         charCount.textContent = jdInput.value.length;
-    });
-
-    // Navigation Logic
-    const aboutSection = document.getElementById('aboutSection');
-
-    function hideAll() {
-        uploadSection.style.display = 'none';
-        resultsSection.style.display = 'none';
-        loadingSection.style.display = 'none';
-        if (aboutSection) aboutSection.style.display = 'none';
-    }
-
-    function showDashboard() {
-        hideAll();
-        if (window.lastData) {
-            resultsSection.style.display = 'grid';
-        } else {
-            uploadSection.style.display = 'grid';
-        }
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function showInfo(subId) {
-        hideAll();
-        if (aboutSection) {
-            aboutSection.style.display = 'flex';
-            if (subId) {
-                const target = document.getElementById(subId);
-                if (target) {
-                    // Slight delay to ensure display: flex is rendered before scrolling
-                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-                }
-            } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        }
-    }
-
-    // Top Nav Links
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-
-            const text = link.textContent.trim();
-            if (text === 'Dashboard') showDashboard();
-            else if (text === 'Resume Score') showInfo('scoreInfo');
-            else if (text === 'Optimize') showInfo('optimizeInfo');
-            else if (text === 'About') showInfo();
-        });
-    });
-
-    // Logo Click
-    document.querySelector('.nav-logo').addEventListener('click', () => {
-        showDashboard();
-        navLinks.forEach(l => l.classList.remove('active'));
-        navLinks[0].classList.add('active');
-    });
-
-    // Sidebar Navigation
-    sidebarItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            const href = item.getAttribute('href');
-            if (href.startsWith('#')) {
-                // If we're in results, scroll to panel
-                if (resultsSection.style.display !== 'none') {
-                    e.preventDefault();
-                    const target = document.querySelector(href);
-                    if (target) {
-                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    }
-                } else if (href === '#analysis') {
-                    e.preventDefault();
-                    showDashboard();
-                }
-            }
-            sidebarItems.forEach(i => i.classList.remove('active'));
-            item.classList.add('active');
-        });
+        if (jdInput.value.length === 100) geminiTalk("Detailed description! Robots love specifics. 👓");
     });
 
     // ==================== Analysis Logic ====================
 
     analyzeBtn.addEventListener('click', async () => {
-        if (!fileInput.files.length) return alert('Please upload a resume first.');
-        if (!jdInput.value.trim()) return alert('Please provide a job description.');
+        if (!fileInput.files.length) return alert('Upload a resume first, challenger! 🛡️');
+        if (!jdInput.value.trim()) return alert('Paste a job description so we can match! 🔍');
 
         const formData = new FormData();
         formData.append('resume_file', fileInput.files[0]);
         formData.append('jd_text', jdInput.value);
 
-        // UI State: Loading
-        uploadSection.style.display = 'none';
+        hideAll();
         loadingSection.style.display = 'flex';
         simulateProgress();
+        geminiTalk("Judgment day! Sending to the robot overlords... 🧠⚡", 5000);
 
         try {
             const response = await fetch('/api/analyze', { method: 'POST', body: formData });
             const data = await response.json();
-
             if (!response.ok) throw new Error(data.error);
 
-            window.lastData = data; // Store for downloads
+            window.lastData = data;
             renderResults(data);
+
+            // Gamification Progress
+            addXp(200, "Full Analysis Complete");
+            if (!gameState.dailyChallengeDone) {
+                gameState.dailyChallengeDone = true;
+                localStorage.setItem('ats_daily_done', today);
+                challengeDot.classList.add('completed');
+                challengeStatus.textContent = "Completed";
+                addXp(100, "Daily Challenge Met");
+            }
+            unlockAchievement('first_scan', 'First Optimization', '✨');
         } catch (error) {
-            geminiTalk("Whoa. That was close. Mascot catches it dramatically! Let's try again. 🧤✨", 5000);
-            alert(`Error analyzing resume: ${error.message}`);
             loadingSection.style.display = 'none';
             uploadSection.style.display = 'grid';
+            geminiTalk("Whoa! Mascot catches it dramatically! Let's try again. 🧤✨", 5000);
+            alert(`Error: ${error.message}`);
         }
     });
 
     function simulateProgress() {
-        const steps = [
-            "Scanning… judging… analyzing… okay mostly analyzing.",
-            "ATS robots are reading very carefully 👓",
-            "Checking if you added enough buzzwords... 🐝",
-            "Consulting the hiring oracle... 🔮",
-            "Making sure your margins aren't suspicious... 📏",
-            "Finalizing the bot-friendly verdict... 🤖"
-        ];
+        const steps = ["Scanning…", "Consulting the hiring oracle... 🔮", "Checking keywords... 🐝", "Finalizing bot verdict... 🤖"];
         const stepEl = document.getElementById('loadingStep');
         let idx = 0;
         const interval = setInterval(() => {
-            if (idx < steps.length) {
-                stepEl.textContent = steps[idx++];
-            } else {
-                clearInterval(interval);
-            }
+            if (idx < steps.length) stepEl.textContent = steps[idx++];
+            else clearInterval(interval);
         }, 1500);
     }
 
@@ -282,88 +285,55 @@ document.addEventListener('DOMContentLoaded', () => {
         loadingSection.style.display = 'none';
         resultsSection.style.display = 'grid';
 
-        // Gemini Response
         const finalScore = Math.round(data.total_score || data.score.total_score);
-        if (finalScore > 80) geminiTalk("ATS approved. Recruiters incoming! 🚀");
-        else if (finalScore > 50) geminiTalk("Not bad! ATS is nodding slowly. 🤖");
-        else geminiTalk("Don’t panic. Even great resumes start somewhere. 🎯");
 
-        // 1. Score Widget (Drama Mode)
-        const score = finalScore;
+        // 1. Score Widget Drama
         const scoreWidget = document.querySelector('.score-widget');
         scoreWidget.classList.add('drama-mode');
 
-        // Anticipation delay
         setTimeout(() => {
             scoreWidget.classList.remove('drama-mode');
-            animateScore(score);
-            updateScoreBadge(score);
+            animateScore(finalScore);
+            updateScoreBadge(finalScore);
 
-            // Success Celebration
-            if (score >= 80) {
-                const popper = document.getElementById('successPopper');
-                popper.style.display = 'block';
-                setTimeout(() => popper.style.display = 'none', 4000);
+            if (finalScore >= 80) {
+                unlockAchievement('top_tier', 'ATS Score 80+', '🚀');
+                triggerConfetti();
                 geminiTalk("BOOM! This resume is illegal to ignore. 🚀🔥");
+            } else if (finalScore >= 60) {
+                geminiTalk("Not bad! ATS is nodding slowly. 🤖");
+            } else {
+                geminiTalk("Don’t panic. Even pro resumes start somewhere. 🎯");
             }
+        }, 2000);
 
-            // Streak Logic
-            const streak = parseInt(localStorage.getItem('ats_streak') || '0') + 1;
-            localStorage.setItem('ats_streak', streak);
-            if (streak > 1) {
-                setTimeout(() => geminiTalk(`Optimization Streak: ${streak} days! 🔥 Recruiters are watching...`), 5000);
-            }
-        }, 1500);
-
-        // 2. Breakdown Grid
+        // 2. Breakdown
         breakdownGrid.innerHTML = '';
         Object.entries(data.score.breakdown).forEach(([key, val]) => {
             const row = document.createElement('div');
             row.className = 'breakdown-row';
-            row.innerHTML = `<span class="row-label">${key.replace(/_/g, ' ').toUpperCase()}</span><span class="row-val">${val.score}%</span>`;
-            breakdownGrid.innerHTML += row.outerHTML;
+            row.innerHTML = `<span class="row-label">${key.replace(/_/g, ' ')}</span><span class="row-val">${val.score}%</span>`;
+            breakdownGrid.appendChild(row);
         });
 
-        // 3. Keyword Mesh
+        // 3. Keywords
         gapsContainer.innerHTML = '';
-        // Extracting mandatory skills for the 'Matched' list
-        const mandatory = data.jd_data.mandatory_skills;
-        const found = data.suitability.recruiter_insights[1]?.match(/\d+\/\d+/) ? true : false; // Heuristic skill check
-
-        // Simplified keyword display for professional UI
-        data.score.breakdown.skills_match.matched?.forEach(skill => {
-            addKeywordPill(skill, 'matched');
-        });
-
-        data.gaps.critical.skills?.forEach(skill => {
-            addKeywordPill(skill, 'missing');
-        });
+        data.score.breakdown.skills_match.matched?.forEach(skill => addKeywordPill(skill, 'matched'));
+        data.gaps.critical.missing_mandatory_skills?.forEach(skill => addKeywordPill(skill, 'missing'));
 
         // 4. Suitability
         suitabilityVerdict.textContent = data.suitability.verdict;
         suitabilityVerdict.style.color = data.suitability.color;
         suitabilityRecommendation.textContent = data.suitability.recommendation;
+        recruiterInsights.innerHTML = data.suitability.recruiter_insights.map(i => `<div class="insight-item">${i}</div>`).join('');
 
-        recruiterInsights.innerHTML = '';
-        data.suitability.recruiter_insights.forEach(insight => {
-            const div = document.createElement('div');
-            div.className = 'insight-item';
-            div.textContent = insight;
-            recruiterInsights.appendChild(div);
-        });
-
-        // 5. Editor Workspace
+        // 5. Editor
         optimizedResume.textContent = data.optimized_resume;
-
-        improvementsContainer.innerHTML = '';
-        data.improvements.keyword_insertions.slice(0, 4).forEach(item => {
-            const card = document.createElement('div');
-            card.className = 'suggestion-card';
-            card.innerHTML = `<strong>Add ${item.keyword}</strong> ${item.suggestion}`;
-            improvementsContainer.appendChild(card);
-        });
-
-        // Sync editor changes back to data (optional for real apps)
+        improvementsContainer.innerHTML = data.improvements.keyword_insertions.slice(0, 4).map(i => `
+            <div class="suggestion-card" onclick="this.style.opacity=0.5; this.style.pointerEvents='none';">
+                <strong>Add ${i.keyword}</strong> ${i.suggestion}
+            </div>
+        `).join('');
     }
 
     function addKeywordPill(text, type) {
@@ -377,15 +347,10 @@ document.addEventListener('DOMContentLoaded', () => {
         let current = 0;
         const ring = scoreRing;
         const circumference = 2 * Math.PI * 45;
-
         const timer = setInterval(() => {
-            if (current >= target) {
-                current = target;
-                clearInterval(timer);
-            }
+            if (current >= target) { current = target; clearInterval(timer); }
             scoreNumber.textContent = Math.round(current);
-            const offset = circumference - (current / 100) * circumference;
-            ring.style.strokeDashoffset = offset;
+            ring.style.strokeDashoffset = circumference - (current / 100) * circumference;
             current += 1.5;
         }, 30);
     }
@@ -395,148 +360,63 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreStatus.textContent = score >= 75 ? 'Strong Match' : (score >= 50 ? 'Potential Match' : 'Weak Match');
     }
 
-    // Re-launch analysis
     newAnalysisBtn.addEventListener('click', () => {
         resultsSection.style.display = 'none';
         uploadSection.style.display = 'grid';
         form.reset();
         jdInput.value = '';
-        resumePreview.textContent = 'No document uploaded yet...';
-        selectedFileName.style.display = 'none';
         window.scrollTo(0, 0);
     });
 
-    // ==================== Downloads ====================
-
-    downloadResumeBtn.addEventListener('click', async () => {
-        if (!window.lastData) return;
-        try {
-            const res = await fetch('/api/download-resume', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ resume_text: optimizedResume.textContent })
-            });
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ATS_Optimized_Resume.txt';
-            a.click();
-        } catch (e) { alert('Export error.'); }
-    });
-
-    downloadReportBtn.addEventListener('click', async () => {
-        try {
-            const res = await fetch('/api/download-report', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(window.lastData || {})
-            });
-            const blob = await res.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'ATS_Professional_Report.txt';
-            a.click();
-        } catch (e) { alert('Report generation error.'); }
-    });
-
-    // Gemini AI Interaction
-    const aiCompanion = document.getElementById('aiCompanion');
-    const aiStatusText = aiCompanion.querySelector('.status-bubble');
-    let geminiTimeout;
-
-    // Hover Easter Egg
-    aiCompanion.style.pointerEvents = 'auto'; // Enable interactions
-    aiCompanion.addEventListener('mouseenter', () => {
-        geminiTalk("Hehe, that tickles! 🤖✨", 1000);
-    });
+    // ==================== UI Effects ====================
 
     function geminiTalk(message, duration = 3000) {
-        if (!aiCompanion) return;
-        clearTimeout(geminiTimeout);
+        const aiCompanion = document.getElementById('aiCompanion');
+        const aiStatusText = aiCompanion.querySelector('.status-bubble');
         aiStatusText.textContent = message;
         aiCompanion.classList.add('talking');
-
-        geminiTimeout = setTimeout(() => {
-            aiCompanion.classList.remove('talking');
-        }, duration);
+        setTimeout(() => aiCompanion.classList.remove('talking'), duration);
     }
 
-    // Daily Greeting Logic
-    const lastVisit = localStorage.getItem('ats_last_visit');
-    const today = new Date().toDateString();
-
-    if (lastVisit !== today) {
-        setTimeout(() => {
-            geminiTalk("Good morning! Ready to defeat those ATS bots today? ☕🤖");
-            localStorage.setItem('ats_last_visit', today);
-        }, 2000);
-    } else {
-        setTimeout(() => geminiTalk("Welcome back! Let's polish that resume. ✨"), 1500);
+    function triggerConfetti() {
+        const popper = document.getElementById('successPopper');
+        popper.style.display = 'block';
+        setTimeout(() => popper.style.display = 'none', 4000);
     }
-
-    // Streak Display Initialization
-    const currentStreak = parseInt(localStorage.getItem('ats_streak') || '0');
-    if (currentStreak > 0) {
-        document.getElementById('streakIndicator').style.display = 'flex';
-        document.getElementById('streakCount').textContent = currentStreak;
-    }
-
-    // React to file upload
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files.length > 0) {
-            geminiTalk("Awesome resume! Let's see those professional secrets... 📄✨");
-            triggerSparkle();
-        }
-    });
-
-    // React to JD typing
-    jdInput.addEventListener('input', () => {
-        if (jdInput.value.length > 50 && jdInput.value.length < 55) {
-            geminiTalk("Reading the fine print... ATS robots are paying attention! 👓");
-        }
-    });
-
-    // React to analysis start
-    analyzeBtn.addEventListener('click', () => {
-        if (fileInput.files.length && jdInput.value.trim()) {
-            geminiTalk("Judgment day! Sending to the robot overlords... 🧠⚡", 5000);
-        }
-    });
-
-    // Follow Cursor logic for AI Orb
-    document.addEventListener('mousemove', (e) => {
-        if (!aiCompanion) return;
-        const x = (e.clientX / window.innerWidth - 0.5) * 40;
-        const y = (e.clientY / window.innerHeight - 0.5) * 40;
-        aiCompanion.style.transform = `translate(${x}px, ${y}px)`;
-    });
 
     function triggerSparkle() {
         const dropZone = document.getElementById('dropArea');
         const sparkle = document.createElement('div');
         sparkle.className = 'sparkle-drop';
         sparkle.innerHTML = '✨✨✨';
-        Object.assign(sparkle.style, {
-            left: '50%',
-            top: '50%',
-            fontSize: '3rem'
-        });
+        Object.assign(sparkle.style, { left: '50%', top: '50%', fontSize: '3rem' });
         dropZone.appendChild(sparkle);
         setTimeout(() => sparkle.remove(), 1000);
     }
 
-    // Update Gemini on results - Logic moved into renderResults directly
-    // Logic was cleaned up here
+    function hideAll() {
+        [uploadSection, resultsSection, loadingSection, document.getElementById('aboutSection')].forEach(s => { if (s) s.style.display = 'none'; });
+    }
 
-    // ==================== Interactions ====================
-    // Mouse Glow
-    const glow = document.getElementById('mouseGlow');
+    // Follow Cursor logic
     document.addEventListener('mousemove', (e) => {
-        if (glow) {
-            glow.style.left = e.clientX + 'px';
-            glow.style.top = e.clientY + 'px';
+        const glow = document.getElementById('mouseGlow');
+        if (glow) { glow.style.left = e.clientX + 'px'; glow.style.top = e.clientY + 'px'; }
+        const aiCompanion = document.getElementById('aiCompanion');
+        if (aiCompanion) {
+            const x = (e.clientX / window.innerWidth - 0.5) * 40;
+            const y = (e.clientY / window.innerHeight - 0.5) * 40;
+            aiCompanion.style.transform = `translate(${x}px, ${y}px)`;
         }
+    });
+
+    // Navigation Linking
+    navLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const text = link.textContent.trim();
+            if (text === 'Dashboard') { hideAll(); window.lastData ? resultsSection.style.display = 'grid' : uploadSection.style.display = 'grid'; }
+            else if (text === 'About') { hideAll(); document.getElementById('aboutSection').style.display = 'flex'; }
+        });
     });
 });

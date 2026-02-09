@@ -124,21 +124,21 @@ class ATSEngine:
         
         # Determine verdict
         if score >= 85:
-            verdict = "Highly Suitable"
-            color = "#10b981" # Success green
-            recommendation = "Express shortlist and schedule technical interview."
+            verdict = "ATS Overlord Approved"
+            color = "var(--accent-teal)" 
+            recommendation = "Shortlist immediately! This resume is basically a recruitment cheat code. 🚀"
         elif score >= 70:
-            verdict = "Suitable / Shortlist"
-            color = "#3b82f6" # Info blue
-            recommendation = "Good candidate for screening call."
+            verdict = "Strong Match Found"
+            color = "#0ea5e9"
+            recommendation = "The robots are impressed. You’re definitely in the 'must-call' pile! 📞"
         elif score >= 50:
-            verdict = "Potential / Review Needed"
-            color = "#f59e0b" # Warning amber
-            recommendation = "Review experience details manually for specific niche skills."
+            verdict = "Potential Match"
+            color = "#f59e0b"
+            recommendation = "You're close! A few keyword tweaks and you'll be unstoppable. 🎯"
         else:
-            verdict = "Not Suitable"
-            color = "#ef4444" # Danger red
-            recommendation = "Candidate does not meet minimum technical requirements."
+            verdict = "Work in Progress"
+            color = "#ef4444"
+            recommendation = "Don't panic! Even epic resumes have a rocky start. Let's optimize! 💪"
             
         # Recruiter Insights
         insights = []

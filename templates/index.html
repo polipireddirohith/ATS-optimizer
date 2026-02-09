@@ -127,13 +127,28 @@
                 </a>
             </div>
 
+            <div class="sidebar-user-progress">
+                <div class="level-badge" id="levelBadge">Lv. 1</div>
+                <div class="xp-container">
+                    <div class="xp-bar-bg">
+                        <div class="xp-bar-fill" id="xpBar"></div>
+                    </div>
+                    <span class="xp-text" id="xpText">0 / 500 XP</span>
+                </div>
+                <div class="level-name" id="levelName">Resume Rookie</div>
+            </div>
+
             <div class="sidebar-footer">
                 <div class="status-indicator">
                     <span class="status-dot"></span>
                     ATS Logic: v2.4 (Active)
                 </div>
                 <div class="status-indicator" id="streakIndicator" style="margin-top: 0.5rem; display: none;">
-                    <span class="streak-fire"></span>
+                    <div class="streak-flame-container">
+                        <lottie-player src="https://assets10.lottiefiles.com/packages/lf20_9i7t3m.json"
+                            background="transparent" speed="1" style="width: 24px; height: 24px;" loop
+                            autoplay></lottie-player>
+                    </div>
                     <span>Streak: <b id="streakCount">0</b> days</span>
                 </div>
             </div>
@@ -172,24 +187,37 @@
                     </div>
                 </div>
 
-                <!-- Right: Job Description -->
-                <div class="workspace-card jd-input-area">
-                    <div class="card-header">
-                        <h3>2. Job Description</h3>
-                        <span class="badge">Required</span>
-                    </div>
-                    <textarea id="jdText"
-                        placeholder="Paste the job requirements, responsibilities, and key skills here to start the matching process..."
-                        required></textarea>
-                    <div class="workspace-footer">
-                        <div class="jd-stats">
-                            <span id="charCount">0</span> characters
+                <!-- Right: Job Description & Daily Challenge -->
+                <div class="workspace-card-stack">
+                    <div class="workspace-card daily-challenge-card" id="dailyChallengeCard">
+                        <div class="card-header">
+                            <h3>🎯 Daily Challenge</h3>
+                            <span class="xp-bonus">+100 XP</span>
                         </div>
-                        <button type="button" id="analyzeBtn" class="btn-primary">
-                            <span>Analyze Match</span>
-                        </button>
+                        <p id="challengeText">Improve your ATS score by 1 point today!</p>
+                        <div class="challenge-progress-mini">
+                            <div class="progress-dot" id="challengeDot"></div>
+                            <span id="challengeStatus">In Progress</span>
+                        </div>
                     </div>
-                </div>
+
+                    <div class="workspace-card jd-input-area">
+                        <div class="card-header">
+                            <h3>2. Job Description</h3>
+                            <span class="badge">Required</span>
+                        </div>
+                        <textarea id="jdText"
+                            placeholder="Paste the job requirements, responsibilities, and key skills here to start the matching process..."
+                            required></textarea>
+                        <div class="workspace-footer">
+                            <div class="jd-stats">
+                                <span id="charCount">0</span> characters
+                            </div>
+                            <button type="button" id="analyzeBtn" class="btn-primary">
+                                <span>Analyze Match</span>
+                            </button>
+                        </div>
+                    </div>
             </section>
 
             <!-- Loading State -->
@@ -235,6 +263,14 @@
                         <button class="btn-primary-full" id="downloadReportBtn">Download Report</button>
                         <button class="btn-secondary-full" id="newAnalysisBtn">Start New Analysis</button>
                     </div>
+
+                    <!-- Achievements Sidebar Widget -->
+                    <div class="achievements-widget">
+                        <h4>🏆 Recent Achievements</h4>
+                        <div id="achievementsList" class="achievements-mini-list">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Detailed Analysis Panels -->
@@ -252,7 +288,7 @@
                     <!-- Suitable Assessment -->
                     <div class="panel-card" id="suitability">
                         <div class="panel-header">
-                            <h3>HR SuitabilityVerdict</h3>
+                            <h3>HR Suitability Verdict</h3>
                         </div>
                         <div class="suitability-content">
                             <div class="verdict-banner" id="suitabilityVerdict">High Potential</div>

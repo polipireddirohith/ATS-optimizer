@@ -43,7 +43,10 @@
     --text-muted: #64748b;
     --border-color: #1e293b;
     --bg-sidebar: #020617;
-    --primary-color: #3b82f6;
+    --primary-color: #0ea5e9;
+    --accent-color: #bc13fe;
+    --accent-teal: #00ffcc;
+    --shadow-md: 0 4px 25px rgba(0, 0, 0, 0.6);
 }
 
 /* ==================== Reset & Base ==================== */
@@ -410,6 +413,61 @@ body {
     opacity: 1;
 }
 
+.sidebar-user-progress {
+    margin-top: 1rem;
+    padding: 1.25rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.level-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-color), #6366f1);
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 50px;
+    margin-bottom: 0.75rem;
+    box-shadow: 0 0 10px rgba(188, 19, 254, 0.3);
+}
+
+.xp-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.xp-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.xp-bar-fill {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent-teal), var(--accent-color));
+    transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.xp-text {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-align: right;
+}
+
+.level-name {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: white;
+}
+
 .sidebar-footer {
     margin-top: auto;
     padding: 1rem;
@@ -439,7 +497,57 @@ body {
     min-height: calc(100vh - var(--navbar-height));
 }
 
-/* Workspace Grid (Initial State) */
+/* Workspace Stack */
+.workspace-card-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.daily-challenge-card {
+    background: linear-gradient(135deg, #1e293b, #0f172a) !important;
+    border-color: var(--accent-color) !important;
+    position: relative;
+    padding: 1.25rem !important;
+}
+
+.xp-bonus {
+    background: rgba(0, 255, 204, 0.1);
+    color: var(--accent-teal);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+
+#challengeText {
+    font-size: 0.85rem;
+    color: #e2e8f0;
+    margin: 0.75rem 0;
+}
+
+.challenge-progress-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: #94a3b8;
+    text-transform: uppercase;
+}
+
+.progress-dot {
+    width: 8px;
+    height: 8px;
+    background: #475569;
+    border-radius: 50%;
+}
+
+.progress-dot.completed {
+    background: var(--accent-teal);
+    box-shadow: 0 0 8px var(--accent-teal);
+}
+
 .workspace-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -635,6 +743,18 @@ body {
     padding: 2.5rem 1.5rem;
     text-align: center;
     box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.widget-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 2rem;
 }
 
 .score-circle-container {
@@ -666,21 +786,23 @@ body {
     position: absolute;
     inset: 0;
     display: flex;
-    align-items: baseline;
+    align-items: center;
     justify-content: center;
-    padding-top: 45px;
+    gap: 2px;
 }
 
 #scoreNumber {
     font-size: 3.5rem;
     font-weight: 900;
     letter-spacing: -2px;
+    line-height: 1;
 }
 
 .score-text small {
     font-size: 1.25rem;
     font-weight: 700;
     color: var(--text-muted);
+    margin-top: 0.5rem;
 }
 
 .score-verdict {
@@ -716,17 +838,44 @@ body {
     border: 1px solid var(--border-color);
 }
 
+.quick-breakdown h4 {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1.25rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
 .breakdown-row {
     display: flex;
     justify-content: space-between;
+    align-items: center;
     font-size: 0.8rem;
-    margin-bottom: 0.75rem;
+    margin-bottom: 1rem;
     color: var(--text-secondary);
+    padding: 0.5rem 0;
+    border-bottom: 1px dotted var(--border-color);
+}
+
+.breakdown-row:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.row-label {
+    font-weight: 600;
+    text-transform: capitalize;
 }
 
 .row-val {
-    font-weight: 700;
-    color: var(--text-primary);
+    font-weight: 800;
+    color: var(--primary-color);
+    background: var(--bg-app);
+    padding: 2px 8px;
+    border-radius: 4px;
 }
 
 .action-buttons {
@@ -822,11 +971,55 @@ body {
     letter-spacing: -0.02em;
 }
 
-.insights-list {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 2rem;
+/* Achievements Widget */
+.achievements-widget {
+    margin-top: 1.5rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+}
+
+.achievements-widget h4 {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 1rem;
+}
+
+.achievements-mini-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.achievement-mini-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.8rem;
+    padding: 0.75rem;
+    background: var(--bg-alt);
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.achievement-icon {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+}
+
+.achievement-info strong {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-primary);
+}
+
+.achievement-info span {
+    font-size: 0.65rem;
+    color: var(--text-muted);
 }
 
 .insight-item {
@@ -1567,44 +1760,65 @@ body {
 /* Muscular Bullets 💪 */
 .keyword-pill.matched {
     transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
 }
 
 .keyword-pill.matched:hover {
     transform: scale(1.15) rotate(2deg);
     box-shadow: 0 0 20px var(--accent-teal);
+    animation: flexMuscle 0.5s ease-in-out;
 }
 
-/* Button Wobble */
-.btn-primary:hover,
-.btn-primary-sm:hover {
-    animation: wobble 0.3s ease-in-out;
-}
-
-@keyframes wobble {
+@keyframes flexMuscle {
 
     0%,
     100% {
-        transform: translateX(0);
+        transform: scale(1.15) rotate(2deg);
+    }
+
+    50% {
+        transform: scale(1.25) rotate(-2deg);
+    }
+}
+
+/* Keywords giggle on hover */
+.keyword-pill:hover {
+    animation: keywordGiggle 0.4s infinite;
+}
+
+@keyframes keywordGiggle {
+    0% {
+        transform: rotate(0deg);
     }
 
     25% {
-        transform: translateX(-3px) rotate(-1deg);
+        transform: rotate(-2deg);
     }
 
     75% {
-        transform: translateX(3px) rotate(1deg);
+        transform: rotate(2deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
     }
 }
 
-/* Mascot Improved Eye Blink (via JS or CSS) */
-.mascot-eyebrows {
-    position: absolute;
-    width: 20px;
-    height: 2px;
-    background: var(--text-primary);
-    top: -5px;
-    transition: 0.2s;
+/* Midnight refinement */
+[data-theme="midnight"] .keyword-pill.matched {
+    background: rgba(0, 255, 204, 0.05);
+    border-color: var(--accent-teal);
+    color: var(--accent-teal);
+    text-shadow: 0 0 10px var(--accent-teal);
 }
+
+[data-theme="midnight"] .score-number {
+    background: linear-gradient(90deg, var(--accent-teal), var(--accent-color));
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
 
 [data-theme="midnight"] .sticky-note {
     background: rgba(254, 240, 138, 0.1);
