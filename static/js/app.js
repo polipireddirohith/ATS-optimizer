@@ -370,8 +370,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 unlockBtn.textContent = "Unlock (Score too low)";
             }
         } else {
-            hrMsg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
+            // Candidate is HIDDEN from HR - show professional message
+            hrMsg.innerHTML = `<span class="vis-hidden">❌ Not Qualified</span> This candidate does not meet the minimum requirements.`;
             if (unlockBtn) unlockBtn.disabled = true;
+
+            // Hide the detailed analysis panels for HR
+            const hrSuitabilityPanel = document.getElementById('suitability');
+            const hrKeywordPanel = document.getElementById('keyword-match');
+            if (hrSuitabilityPanel) hrSuitabilityPanel.style.display = 'none';
+            if (hrKeywordPanel) hrKeywordPanel.style.display = 'none';
         }
     }
 
@@ -382,6 +389,12 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsSection.style.display = 'grid';
 
         const finalScore = Math.round(data.total_score || data.score.total_score);
+
+        // Reset panel visibility (in case they were hidden for a previous low-scoring candidate)
+        const hrSuitabilityPanel = document.getElementById('suitability');
+        const hrKeywordPanel = document.getElementById('keyword-match');
+        if (hrSuitabilityPanel) hrSuitabilityPanel.style.display = '';
+        if (hrKeywordPanel) hrKeywordPanel.style.display = '';
 
         // Update HR Controls if in HR mode
         if (document.body.classList.contains('role-hr')) {
