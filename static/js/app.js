@@ -108,7 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
     dropArea.addEventListener('drop', (e) => {
         const file = e.dataTransfer.files[0];
         handleFileSelect(file);
-        addXp(50, "Resume Dropped");
+        // XP Removed
     });
 
     function handleFileSelect(file) {
@@ -149,16 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.lastData = data;
             renderResults(data);
 
-            // Gamification Progress
-            addXp(200, "Full Analysis Complete");
-            if (!gameState.dailyChallengeDone) {
-                gameState.dailyChallengeDone = true;
-                localStorage.setItem('ats_daily_done', today);
-                challengeDot.classList.add('completed');
-                challengeStatus.textContent = "Completed";
-                addXp(100, "Daily Challenge Met");
-            }
-            unlockAchievement('first_scan', 'First Optimization', '✨');
+            // Gamification Progress removed for HR Mode
         } catch (error) {
             loadingSection.style.display = 'none';
             uploadSection.style.display = 'grid';
@@ -307,7 +298,6 @@ document.addEventListener('DOMContentLoaded', () => {
             updateScoreBadge(finalScore);
 
             if (finalScore >= 80) {
-                unlockAchievement('top_tier', 'ATS Score 80+', '🚀');
                 triggerConfetti();
                 geminiTalk("BOOM! This resume is illegal to ignore. 🚀🔥");
             } else if (finalScore >= 60) {
