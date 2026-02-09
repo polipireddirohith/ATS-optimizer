@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadSection = document.getElementById('uploadSection');
     const loadingSection = document.getElementById('loadingSection');
     const resultsSection = document.getElementById('resultsSection');
-    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const sidebarItems = document.querySelectorAll('.sidebar-link');
     const navLinks = document.querySelectorAll('.nav-links a');
 
     // Gamification Elements
@@ -775,18 +775,26 @@ document.addEventListener('DOMContentLoaded', () => {
         // Update active states
         [...navLinks, ...sidebarItems].forEach(el => {
             const text = el.textContent.trim().toLowerCase();
-            el.classList.toggle('active', text.includes(target));
+            const href = el.getAttribute('href') || '';
+            const isActive = text.includes(target) || href.includes(target);
+            el.classList.toggle('active', isActive);
         });
     }
 
     [...navLinks, ...sidebarItems].forEach(link => {
         link.addEventListener('click', (e) => {
+            const href = link.getAttribute('href');
+
+            // Allow external links (start with / or http) to behave normally
+            if (!href || href.startsWith('/') || href.startsWith('http')) return;
+
+            // Handle internal navigation for dashboard sections
             e.preventDefault();
-            const text = link.textContent.trim().toLowerCase();
-            if (text.includes('dashboard')) navigate('dashboard');
-            else if (text.includes('score')) navigate('score');
-            else if (text.includes('optimize')) navigate('optimize');
-            else if (text.includes('about')) navigate('about');
+
+            if (href === '#dashboard' || href.includes('dashboard')) navigate('dashboard');
+            else if (href === '#score-info' || href.includes('score')) navigate('score');
+            else if (href === '#optimize-info' || href.includes('optimize')) navigate('optimize');
+            else if (href === '#about' || href.includes('about')) navigate('about');
         });
     });
 
