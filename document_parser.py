@@ -46,6 +46,7 @@ class DocumentParser:
         elif file_ext == '.txt':
             return self._parse_txt(file_path)
     
+    def _parse_pdf(self, file_path: str) -> str:
         """Parse PDF file"""
         try:
             import pdfplumber
