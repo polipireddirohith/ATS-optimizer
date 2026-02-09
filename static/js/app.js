@@ -482,7 +482,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.suitability.education_required !== 'Not specified') {
             const eduClass = data.suitability.education_match ? 'valid' : 'missing';
             const eduIcon = data.suitability.education_match ? '🎓' : '📚';
-            hrHtml += `<div class="hr-section"><h5>Academic Requirement</h5><div class="skill-tags ${eduClass}">`;
+            const matchStatus = data.suitability.education_match ? 'MATCHED ✓' : 'NOT MATCHED ✗';
+            const matchColor = data.suitability.education_match ? 'var(--accent-teal)' : '#ef4444';
+
+            hrHtml += `<div class="hr-section"><h5>Academic Requirement</h5>`;
+            hrHtml += `<div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">`;
+            hrHtml += `<span style="font-size:0.7rem; font-weight:700; color:${matchColor}; background:${data.suitability.education_match ? 'rgba(20, 184, 166, 0.1)' : 'rgba(239, 68, 68, 0.1)'}; padding:0.25rem 0.5rem; border-radius:4px;">${matchStatus}</span>`;
+            hrHtml += `</div>`;
+            hrHtml += `<div class="skill-tags ${eduClass}">`;
             hrHtml += `<span>${eduIcon} Required: ${data.suitability.education_required}</span>`;
             hrHtml += `</div><div style="font-size:0.75rem; margin-top:0.5rem; color:var(--text-secondary);">Found: ${data.suitability.resume_education.join(', ') || 'None detected'}</div></div>`;
         } else {
