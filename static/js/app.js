@@ -866,10 +866,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Start Over logic - Add a dedicated "New Analysis" button or handle specifically
+    // Start Over logic - Reload page for new analysis
     window.startOver = function () {
-        if (confirm("Clear results and start a new analysis?")) {
-            location.reload();
-        }
+        location.reload();
     };
 });
