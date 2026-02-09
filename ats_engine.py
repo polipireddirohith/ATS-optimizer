@@ -970,13 +970,14 @@ class ATSEngine:
         report.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
         
         # Score
-        report.append(f"ATS COMPATIBILITY SCORE: {score_data['total_score']}/100")
+        total_score = score_data.get('total_score', 0)
+        report.append(f"ATS COMPATIBILITY SCORE: {total_score}/100")
         report.append("-" * 80)
         
         # Score breakdown
         report.append("\nSCORE BREAKDOWN:")
-        for component, data in score_data['breakdown'].items():
-            report.append(f"  {component.replace('_', ' ').title()}: {data['score']}/100 (Weight: {data['weight']})")
+        for component, data in score_data.get('breakdown', {}).items():
+            report.append(f"  {component.replace('_', ' ').title()}: {data.get('score', 0)}/100 (Weight: {data.get('weight', 0)})")
         
         # Gap analysis
         report.append("\n" + "=" * 80)
@@ -1042,8 +1043,8 @@ class ATSEngine:
         report.append("BEFORE vs AFTER KEYWORD COMPARISON")
         report.append("=" * 80)
         
-        resume_keywords = set(resume_data['keywords'][:20])
-        jd_keywords = set(jd_data['domain_keywords'][:20])
+        resume_keywords = set(resume_data.get('keywords', [])[:20])
+        jd_keywords = set(jd_data.get('domain_keywords', [])[:20])
         matched_before = resume_keywords & jd_keywords
         
         report.append(f"\nMatched Keywords Before: {len(matched_before)}/20")

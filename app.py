@@ -103,18 +103,8 @@ def analyze_resume():
                 'timestamp': datetime.now().isoformat(),
                 'score': score_data,
                 'suitability': suitability,
-                'resume_data': {
-                    'contact_info': resume_data['contact_info'],
-                    'skills_count': len(resume_data['skills']),
-                    'experience_count': len(resume_data['experience']),
-                    'keywords_count': len(resume_data['keywords']),
-                    'formatting_issues': resume_data['formatting_issues']
-                },
-                'jd_data': {
-                    'mandatory_skills': jd_data['mandatory_skills'],
-                    'preferred_skills': jd_data['preferred_skills'],
-                    'experience_required': jd_data['experience_required']
-                },
+                'resume_data': resume_data,
+                'jd_data': jd_data,
                 'gaps': gaps,
                 'improvements': improvements,
                 'optimized_resume': optimized_resume
