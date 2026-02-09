@@ -705,7 +705,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (unlockBtn) unlockBtn.onclick = window.unlockContactDetails;
     if (shortlistBtn) shortlistBtn.onclick = window.shortlistCandidate;
     if (addNoteBtn) addNoteBtn.onclick = window.addInternalNote;
-    if (hrNewAnalysisBtn) hrNewAnalysisBtn.onclick = window.startOver;
+    if (hrNewAnalysisBtn) hrNewAnalysisBtn.onclick = () => window.startOver();
 
     // ==================== UI Effects ====================
 
@@ -818,13 +818,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     if (newAnalysisBtn) {
-        newAnalysisBtn.onclick = () => {
-            // Scroll to the optimization editor
-            const editorSection = document.getElementById('editor');
-            if (editorSection) {
-                editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        };
+        newAnalysisBtn.onclick = () => window.startOver();
     }
 
     if (resetAnalysisBtn) {
