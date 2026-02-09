@@ -52,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const unlockBtn = document.getElementById('unlockBtn');
     const shortlistBtn = document.getElementById('shortlistBtn');
     const addNoteBtn = document.getElementById('addNoteBtn');
+    const hrNewAnalysisBtn = document.getElementById('hrNewAnalysisBtn');
 
     // ==================== Gamification Core ====================
 
@@ -661,6 +662,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (unlockBtn) unlockBtn.onclick = window.unlockContactDetails;
     if (shortlistBtn) shortlistBtn.onclick = window.shortlistCandidate;
     if (addNoteBtn) addNoteBtn.onclick = window.addInternalNote;
+    if (hrNewAnalysisBtn) hrNewAnalysisBtn.onclick = window.startOver;
 
     // ==================== UI Effects ====================
 
