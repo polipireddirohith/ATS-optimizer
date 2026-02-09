@@ -52,7 +52,8 @@ class ShortlistManager:
             'matched_certifications': candidate_data.get('matched_certifications', []),
             'job_title': candidate_data.get('job_title', 'Not specified'),
             'notes': candidate_data.get('notes', ''),
-            'status': 'shortlisted'
+            'status': 'shortlisted',
+            'recruiter_name': candidate_data.get('recruiter_name', 'Unknown')
         }
         
         # Check if already shortlisted

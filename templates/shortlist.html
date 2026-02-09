@@ -212,7 +212,8 @@
                         <th>Score</th>
                         <th>Verdict</th>
                         <th>Status</th>
-                        <th>Shortlisted</th>
+                        <th>Shortlisted At</th>
+                        <th>Recruiter</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -304,14 +305,16 @@
                         </span>
                     </td>
                     <td>${new Date(candidate.shortlisted_at).toLocaleDateString()}</td>
+                    <td><span style="font-weight: 500; color: var(--text-primary);">${candidate.recruiter_name || 'System'}</span></td>
                     <td onclick="event.stopPropagation();">
                         <div class="action-buttons">
-                            <select class="btn-small" onchange="updateStatus('${candidate.email}', this.value)">
-                                <option value="">Update Status</option>
-                                <option value="interviewed">Interviewed</option>
-                                <option value="offered">Offered</option>
-                                <option value="hired">Hired</option>
-                                <option value="rejected">Rejected</option>
+                            <select class="btn-small" onchange="updateStatus('${candidate.email}', this.value)" style="min-width: 130px;">
+                                <option value="shortlisted" ${candidate.status === 'shortlisted' ? 'selected' : ''}>Shortlisted</option>
+                                <option value="interview_completed" ${candidate.status === 'interview_completed' ? 'selected' : ''}>Interview Completed</option>
+                                <option value="offer_released" ${candidate.status === 'offer_released' ? 'selected' : ''}>Offer Released</option>
+                                <option value="letter_of_intent" ${candidate.status === 'letter_of_intent' ? 'selected' : ''}>Letter of Intent</option>
+                                <option value="onboarding_done" ${candidate.status === 'onboarding_done' ? 'selected' : ''}>Onboarding Done</option>
+                                <option value="rejected" ${candidate.status === 'rejected' ? 'selected' : ''}>Rejected</option>
                             </select>
                             <button class="btn-small" onclick="removeCandidate('${candidate.email}')" style="background: #ef4444; color: white; border-color: #ef4444;">
                                 Remove

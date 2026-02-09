@@ -655,6 +655,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Add to shortlist
             try {
+                let recruiterName = localStorage.getItem('ats_recruiter_name');
+                if (!recruiterName) {
+                    recruiterName = prompt("Please enter your name for the records:");
+                    if (recruiterName) localStorage.setItem('ats_recruiter_name', recruiterName);
+                    else recruiterName = 'Anonymous Recruiter';
+                }
+
                 const candidateData = {
                     candidate_name: window.currentCandidateData?.resume_data?.contact_info?.name,
                     email: window.currentCandidateData?.resume_data?.contact_info?.email,
@@ -665,7 +672,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     missing_skills: window.currentCandidateData?.suitability?.missing_skills,
                     education_match: window.currentCandidateData?.suitability?.education_match,
                     matched_certifications: window.currentCandidateData?.suitability?.matched_certifications,
-                    job_title: 'Current Analysis'
+                    job_title: 'Current Analysis',
+                    recruiter_name: recruiterName
                 };
 
                 const response = await fetch('/api/shortlist/add', {
