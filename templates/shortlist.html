@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shortlisted Candidates - ATS Optimizer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .shortlist-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 2rem;
+        }
+
+        .shortlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-teal), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .candidate-table {
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: var(--bg-alt);
+        }
+
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
+        }
+
+        tr:hover {
+            background: var(--bg-alt);
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .status-shortlisted {
+            background: rgba(20, 184, 166, 0.1);
+            color: var(--accent-teal);
+            border: 1px solid var(--accent-teal);
+        }
+
+        .status-interviewed {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            border: 1px solid #3b82f6;
+        }
+
+        .status-offered {
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border: 1px solid #f59e0b;
+        }
+
+        .status-hired {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid #22c55e;
+        }
+
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-alt);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-small:hover {
+            background: var(--accent-teal);
+            color: white;
+            border-color: var(--accent-teal);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 1rem;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="shortlist-container">
+        <div class="shortlist-header">
+            <div>
+                <a href="/"
+                    style="display: inline-block; margin-bottom: 1rem; padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 0.9rem;">
+                    ← Back to Main
+                </a>
+                <h1 style="font-size: 2.5rem; margin: 0;">⭐ Shortlisted Candidates</h1>
+                <p style="color: var(--text-muted); margin-top: 0.5rem;">Manage your top candidates</p>
+            </div>
+        </div>
+
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalCount">0</div>
+                <div class="stat-label">Total Shortlisted</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="avgScore">0</div>
+                <div class="stat-label">Average Score</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="statusCount">0</div>
+                <div class="stat-label">Active Candidates</div>
+            </div>
+        </div>
+
+        <div class="candidate-table" id="candidateTable">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Score</th>
+                        <th>Verdict</th>
+                        <th>Status</th>
+                        <th>Shortlisted</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="candidateTableBody">
+                    <!-- Populated by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-state" id="emptyState" style="display: none;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path
+                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <h3>No Candidates Shortlisted Yet</h3>
+            <p>Start analyzing resumes and shortlist your top candidates!</p>
+            <a href="/"
+                style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: var(--accent-teal); color: white; text-decoration: none; border-radius: 8px;">
+                Analyze Resumes
+            </a>
+        </div>
+    </div>
+
+    <script>
+        async function loadShortlist() {
+            try {
+                const response = await fetch('/api/shortlist/all');
+                const data = await response.json();
+
+                if (data.success && data.candidates.length > 0) {
+                    displayCandidates(data.candidates);
+                    updateStatistics(data.candidates);
+                } else {
+                    showEmptyState();
+                }
+            } catch (error) {
+                console.error('Error loading shortlist:', error);
+                alert('Failed to load shortlist');
+            }
+        }
+
+        function displayCandidates(candidates) {
+            const tbody = document.getElementById('candidateTableBody');
+            const table = document.getElementById('candidateTable');
+            const emptyState = document.getElementById('emptyState');
+
+            table.style.display = 'block';
+            emptyState.style.display = 'none';
+
+            tbody.innerHTML = candidates.map(candidate => `
+                <tr>
+                    <td><strong>${candidate.candidate_name || 'Unknown'}</strong></td>
+                    <td>${candidate.email || 'N/A'}</td>
+                    <td>${candidate.phone || 'N/A'}</td>
+                    <td><strong>${Math.round(candidate.total_score || 0)}</strong></td>
+                    <td>${candidate.verdict || 'N/A'}</td>
+                    <td>
+                        <span class="status-badge status-${candidate.status || 'shortlisted'}">
+                            ${(candidate.status || 'shortlisted').toUpperCase()}
+                        </span>
+                    </td>
+                    <td>${new Date(candidate.shortlisted_at).toLocaleDateString()}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <select class="btn-small" onchange="updateStatus('${candidate.email}', this.value)">
+                                <option value="">Update Status</option>
+                                <option value="interviewed">Interviewed</option>
+                                <option value="offered">Offered</option>
+                                <option value="hired">Hired</option>
+                                <option value="rejected">Rejected</option>
+                            </select>
+                            <button class="btn-small" onclick="removeCandidate('${candidate.email}')" style="background: #ef4444; color: white; border-color: #ef4444;">
+                                Remove
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function updateStatistics(candidates) {
+            document.getElementById('totalCount').textContent = candidates.length;
+
+            const avgScore = candidates.reduce((sum, c) => sum + (c.total_score || 0), 0) / candidates.length;
+            document.getElementById('avgScore').textContent = Math.round(avgScore);
+
+            const activeCount = candidates.filter(c => c.status === 'shortlisted' || c.status === 'interviewed').length;
+            document.getElementById('statusCount').textContent = activeCount;
+        }
+
+        function showEmptyState() {
+            document.getElementById('candidateTable').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'block';
+        }
+
+        async function updateStatus(email, status) {
+            if (!status) return;
+
+            try {
+                const response = await fetch('/api/shortlist/update-status', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, status })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadShortlist(); // Reload the list
+                } else {
+                    alert('Failed to update status');
+                }
+            } catch (error) {
+                alert('Error updating status: ' + error.message);
+            }
+        }
+
+        async function removeCandidate(email) {
+            if (!confirm('Are you sure you want to remove this candidate from the shortlist?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/shortlist/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    loadShortlist(); // Reload the list
+                } else {
+                    alert('Failed to remove candidate');
+                }
+            } catch (error) {
+                alert('Error removing candidate: ' + error.message);
+            }
+        }
+
+        // Load shortlist on page load
+        loadShortlist();
+    </script>
+</body>
+
+</html>

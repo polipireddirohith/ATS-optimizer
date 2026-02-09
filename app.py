@@ -12,9 +12,11 @@ import tempfile
 import json
 from datetime import datetime
 
+
 from ats_engine import ATSEngine
 from document_parser import DocumentParser
 from pdf_generator import PDFGenerator
+from shortlist_manager import ShortlistManager
 
 
 app = Flask(__name__)
@@ -25,6 +27,8 @@ app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 ats_engine = ATSEngine()
 doc_parser = DocumentParser()
 pdf_generator = PDFGenerator()
+shortlist_manager = ShortlistManager()
+
 
 ALLOWED_EXTENSIONS = {'pdf', 'docx', 'txt'}
 
@@ -301,6 +305,103 @@ def bulk_analyze_resumes():
             'success': False,
             'error': str(e)
         }), 500
+
+
+# Shortlist Management Endpoints
+@app.route('/api/shortlist/add', methods=['POST'])
+def add_to_shortlist():
+    """Add a candidate to the shortlist"""
+    try:
+        data = request.get_json()
+        result = shortlist_manager.add_candidate(data)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/remove', methods=['POST'])
+def remove_from_shortlist():
+    """Remove a candidate from the shortlist"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        result = shortlist_manager.remove_candidate(email)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/all', methods=['GET'])
+def get_all_shortlisted():
+    """Get all shortlisted candidates"""
+    try:
+        candidates = shortlist_manager.get_all_shortlisted()
+        return jsonify({
+            'success': True,
+            'candidates': candidates,
+            'total': len(candidates)
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/check/<email>', methods=['GET'])
+def check_shortlist_status(email):
+    """Check if a candidate is shortlisted"""
+    try:
+        candidate = shortlist_manager.get_by_email(email)
+        return jsonify({
+            'success': True,
+            'is_shortlisted': bool(candidate),
+            'candidate': candidate
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/update-status', methods=['POST'])
+def update_shortlist_status():
+    """Update candidate status"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        status = data.get('status')
+        result = shortlist_manager.update_status(email, status)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/add-note', methods=['POST'])
+def add_shortlist_note():
+    """Add a note to a shortlisted candidate"""
+    try:
+        data = request.get_json()
+        email = data.get('email')
+        note = data.get('note')
+        result = shortlist_manager.add_note(email, note)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/shortlist/statistics', methods=['GET'])
+def get_shortlist_statistics():
+    """Get shortlist statistics"""
+    try:
+        stats = shortlist_manager.get_statistics()
+        return jsonify({
+            'success': True,
+            'statistics': stats
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/shortlist')
+def view_shortlist():
+    """Render shortlist page"""
+    return render_template('shortlist.html')
 
 
 @app.errorhandler(413)

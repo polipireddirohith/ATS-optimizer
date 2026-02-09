@@ -391,6 +391,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const finalScore = Math.round(data.total_score || data.score.total_score);
 
+        // Store current candidate data globally for shortlist functionality
+        window.currentCandidateData = data;
+
         // Reset panel visibility (in case they were hidden for a previous low-scoring candidate)
         const hrSuitabilityPanel = document.getElementById('suitability');
         const hrKeywordPanel = document.getElementById('keyword-match');
@@ -830,21 +833,70 @@ document.addEventListener('DOMContentLoaded', () => {
         unlockBtn.disabled = true;
     };
 
-    window.shortlistCandidate = function () {
+    window.shortlistCandidate = async function () {
         const btn = document.getElementById('shortlistBtn');
         const isShortlisted = btn.classList.contains('active');
 
         if (isShortlisted) {
-            btn.classList.remove('active');
-            btn.textContent = "Shortlist Candidate";
-            btn.style.borderColor = "";
-            geminiTalk("Candidate removed from shortlist. ❌");
+            // Remove from shortlist
+            try {
+                const response = await fetch('/api/shortlist/remove', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        email: window.currentCandidateData?.resume_data?.contact_info?.email
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    btn.classList.remove('active');
+                    btn.textContent = "Shortlist Candidate";
+                    btn.style.borderColor = "";
+                    geminiTalk("Candidate removed from shortlist. ❌");
+                } else {
+                    alert('Failed to remove from shortlist: ' + result.message);
+                }
+            } catch (error) {
+                alert('Error removing from shortlist: ' + error.message);
+            }
         } else {
-            btn.classList.add('active');
-            btn.textContent = "Shortlisted ⭐";
-            btn.style.borderColor = "var(--accent-teal)";
-            triggerConfetti();
-            geminiTalk("Excellent choice! Candidate added to shortlist. ⭐");
+            // Add to shortlist
+            try {
+                const candidateData = {
+                    candidate_name: window.currentCandidateData?.resume_data?.contact_info?.name,
+                    email: window.currentCandidateData?.resume_data?.contact_info?.email,
+                    phone: window.currentCandidateData?.resume_data?.contact_info?.phone,
+                    total_score: window.currentCandidateData?.score?.total_score,
+                    verdict: window.currentCandidateData?.suitability?.verdict,
+                    matched_skills: window.currentCandidateData?.suitability?.matched_skills,
+                    missing_skills: window.currentCandidateData?.suitability?.missing_skills,
+                    education_match: window.currentCandidateData?.suitability?.education_match,
+                    matched_certifications: window.currentCandidateData?.suitability?.matched_certifications,
+                    job_title: 'Current Analysis'
+                };
+
+                const response = await fetch('/api/shortlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(candidateData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    btn.classList.add('active');
+                    btn.textContent = "Shortlisted ⭐";
+                    btn.style.borderColor = "var(--accent-teal)";
+                    triggerConfetti();
+                    geminiTalk("Excellent choice! Candidate saved to shortlist. ⭐");
+                } else {
+                    alert(result.message || 'Failed to add to shortlist');
+                }
+            } catch (error) {
+                alert('Error adding to shortlist: ' + error.message);
+            }
         }
     };
 
