@@ -146,30 +146,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Navigation Logic
-    function showUpload() {
+    const aboutSection = document.getElementById('aboutSection');
+
+    function hideAll() {
+        uploadSection.style.display = 'none';
         resultsSection.style.display = 'none';
-        uploadSection.style.display = 'grid';
+        loadingSection.style.display = 'none';
+        if (aboutSection) aboutSection.style.display = 'none';
+    }
+
+    function showDashboard() {
+        hideAll();
+        if (window.lastData) {
+            resultsSection.style.display = 'grid';
+        } else {
+            uploadSection.style.display = 'grid';
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
-        // Reset sidebar items
-        sidebarItems.forEach(i => i.classList.remove('active'));
-        sidebarItems[0].classList.add('active');
+    }
+
+    function showInfo(subId) {
+        hideAll();
+        if (aboutSection) {
+            aboutSection.style.display = 'flex';
+            if (subId) {
+                const target = document.getElementById(subId);
+                if (target) {
+                    // Slight delay to ensure display: flex is rendered before scrolling
+                    setTimeout(() => target.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
+                }
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
     }
 
     // Top Nav Links
     navLinks.forEach(link => {
         link.addEventListener('click', (e) => {
-            if (link.getAttribute('href') === '#' || link.textContent === 'Dashboard') {
-                e.preventDefault();
-                showUpload();
-                navLinks.forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-            }
+            e.preventDefault();
+            navLinks.forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+
+            const text = link.textContent.trim();
+            if (text === 'Dashboard') showDashboard();
+            else if (text === 'Resume Score') showInfo('scoreInfo');
+            else if (text === 'Optimize') showInfo('optimizeInfo');
+            else if (text === 'About') showInfo();
         });
     });
 
     // Logo Click
     document.querySelector('.nav-logo').addEventListener('click', () => {
-        showUpload();
+        showDashboard();
         navLinks.forEach(l => l.classList.remove('active'));
         navLinks[0].classList.add('active');
     });
@@ -188,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 } else if (href === '#analysis') {
                     e.preventDefault();
-                    showUpload();
+                    showDashboard();
                 }
             }
             sidebarItems.forEach(i => i.classList.remove('active'));

@@ -51,9 +51,9 @@
                 </div>
             </div>
             <div class="nav-links">
-                <a href="#" class="active">Dashboard</a>
-                <a href="#about">Resume Score</a>
-                <a href="#optimize">Optimize</a>
+                <a href="#dashboard" class="active">Dashboard</a>
+                <a href="#score-info">Resume Score</a>
+                <a href="#optimize-info">Optimize</a>
                 <a href="#about">About</a>
             </div>
             <div class="nav-actions">
@@ -237,6 +237,69 @@
                             <div class="suggestions-rail">
                                 <h4>Optimization Path</h4>
                                 <div id="improvementsContainer"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Info Sections (About, Score Info, Optimize Info) -->
+            <section id="aboutSection" class="info-layout" style="display: none;">
+                <div class="panel-card info-card">
+                    <div class="info-header">
+                        <span class="info-icon">🏢</span>
+                        <h2>About ATS Analyzer</h2>
+                    </div>
+                    <div class="info-body">
+                        <p class="premium-text">Built for the modern job seeker. Our mission is to bridge the gap
+                            between talented individuals and complex screening algorithms. By providing enterprise-grade
+                            analysis tools for free, we ensure everyone has a fair shot at their dream career.</p>
+                        <div class="feature-grid">
+                            <div class="feature-item">
+                                <strong>Enterprise Logic</strong>
+                                <p>Mimics systems like Workday, Greenhouse, and Lever.</p>
+                            </div>
+                            <div class="feature-item">
+                                <strong>Privacy First</strong>
+                                <p>Your data is processed and never sold to third parties.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel-card info-card" id="scoreInfo">
+                    <div class="info-header">
+                        <span class="info-icon">📊</span>
+                        <h2>How Scoring Works</h2>
+                    </div>
+                    <div class="info-body">
+                        <p>Our algorithm analyzes your resume across 4 critical pillars: Keyword Match, Skill Recalling,
+                            Experience Alignment, and Formatting. We use weighted vectors to ensure that mandatory job
+                            requirements carry the most impact.</p>
+                        <ul class="info-list">
+                            <li><strong>Keywords (40%):</strong> Hard skills and domain-specific terminology.</li>
+                            <li><strong>Skills (25%):</strong> Categorized technical and soft competencies.</li>
+                            <li><strong>Experience (15%):</strong> Alignment with role seniority and responsibilities.
+                            </li>
+                            <li><strong>Formatting (10%):</strong> ATS-readability and document structure.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="panel-card info-card" id="optimizeInfo">
+                    <div class="info-header">
+                        <span class="info-icon">✨</span>
+                        <h2>AI Optimization</h2>
+                    </div>
+                    <div class="info-body">
+                        <p>The optimization workspace uses AI to suggest real-time improvements. From 'STAR' method
+                            bullet point rewrites to missing keyword insertions, we help you transform your resume into
+                            its most powerful version.</p>
+                        <div class="suggestion-preview">
+                            <div class="suggestion-card">
+                                <strong>STAR Method</strong>
+                                <p>Rewriting "Worked on sales" to "Architected a new sales funnel increasing conversion
+                                    by 20%."</p>
                             </div>
                         </div>
                     </div>
