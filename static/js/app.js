@@ -791,13 +791,20 @@ document.addEventListener('DOMContentLoaded', () => {
         scoreStatus.textContent = score >= 75 ? 'Strong Match' : (score >= 50 ? 'Potential Match' : 'Weak Match');
     }
 
+    // "Optimize Below" button - scroll to editor
     newAnalysisBtn.addEventListener('click', () => {
-        resultsSection.style.display = 'none';
-        uploadSection.style.display = 'grid';
-        form.reset();
-        jdInput.value = '';
-        window.scrollTo(0, 0);
+        const editorSection = document.getElementById('editor');
+        if (editorSection) {
+            editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     });
+
+    // "Start New Search" / "Analyze New Resume" button - reload page
+    if (resetAnalysisBtn) {
+        resetAnalysisBtn.addEventListener('click', () => {
+            window.location.href = '/';
+        });
+    }
 
     // ==================== HR Actions ====================
     window.unlockContactDetails = function () {
