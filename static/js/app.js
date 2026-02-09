@@ -249,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.lastData = data; // Store for downloads
             renderResults(data);
         } catch (error) {
+            geminiTalk("Whoa. That was close. Mascot catches it dramatically! Let's try again. 🧤✨", 5000);
             alert(`Error analyzing resume: ${error.message}`);
             loadingSection.style.display = 'none';
             uploadSection.style.display = 'grid';
@@ -287,10 +288,32 @@ document.addEventListener('DOMContentLoaded', () => {
         else if (finalScore > 50) geminiTalk("Not bad! ATS is nodding slowly. 🤖");
         else geminiTalk("Don’t panic. Even great resumes start somewhere. 🎯");
 
-        // 1. Score Widget
+        // 1. Score Widget (Drama Mode)
         const score = finalScore;
-        animateScore(score);
-        updateScoreBadge(score);
+        const scoreWidget = document.querySelector('.score-widget');
+        scoreWidget.classList.add('drama-mode');
+
+        // Anticipation delay
+        setTimeout(() => {
+            scoreWidget.classList.remove('drama-mode');
+            animateScore(score);
+            updateScoreBadge(score);
+
+            // Success Celebration
+            if (score >= 80) {
+                const popper = document.getElementById('successPopper');
+                popper.style.display = 'block';
+                setTimeout(() => popper.style.display = 'none', 4000);
+                geminiTalk("BOOM! This resume is illegal to ignore. 🚀🔥");
+            }
+
+            // Streak Logic
+            const streak = parseInt(localStorage.getItem('ats_streak') || '0') + 1;
+            localStorage.setItem('ats_streak', streak);
+            if (streak > 1) {
+                setTimeout(() => geminiTalk(`Optimization Streak: ${streak} days! 🔥 Recruiters are watching...`), 5000);
+            }
+        }, 1500);
 
         // 2. Breakdown Grid
         breakdownGrid.innerHTML = '';
@@ -418,10 +441,16 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (e) { alert('Report generation error.'); }
     });
 
-    // ==================== Gemini AI Interaction ====================
+    // Gemini AI Interaction
     const aiCompanion = document.getElementById('aiCompanion');
     const aiStatusText = aiCompanion.querySelector('.status-bubble');
     let geminiTimeout;
+
+    // Hover Easter Egg
+    aiCompanion.style.pointerEvents = 'auto'; // Enable interactions
+    aiCompanion.addEventListener('mouseenter', () => {
+        geminiTalk("Hehe, that tickles! 🤖✨", 1000);
+    });
 
     function geminiTalk(message, duration = 3000) {
         if (!aiCompanion) return;
@@ -434,8 +463,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, duration);
     }
 
-    // Initial greeting
-    setTimeout(() => geminiTalk("Looking for a job? Let's optimize! 🚀"), 1500);
+    // Daily Greeting Logic
+    const lastVisit = localStorage.getItem('ats_last_visit');
+    const today = new Date().toDateString();
+
+    if (lastVisit !== today) {
+        setTimeout(() => {
+            geminiTalk("Good morning! Ready to defeat those ATS bots today? ☕🤖");
+            localStorage.setItem('ats_last_visit', today);
+        }, 2000);
+    } else {
+        setTimeout(() => geminiTalk("Welcome back! Let's polish that resume. ✨"), 1500);
+    }
+
+    // Streak Display Initialization
+    const currentStreak = parseInt(localStorage.getItem('ats_streak') || '0');
+    if (currentStreak > 0) {
+        document.getElementById('streakIndicator').style.display = 'flex';
+        document.getElementById('streakCount').textContent = currentStreak;
+    }
 
     // React to file upload
     fileInput.addEventListener('change', () => {

@@ -1467,3 +1467,175 @@ body {
         text-shadow: 0 0 20px var(--primary-color), 0 0 30px var(--accent-color);
     }
 }
+
+/* ==================== Gamification & Witty UX ==================== */
+
+/* Floating Sticky Notes */
+.sticky-note {
+    position: fixed;
+    width: 150px;
+    padding: 1rem;
+    background: #fef08a;
+    /* Soft Yellow */
+    color: #854d0e;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-style: italic;
+    border-radius: 2px;
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
+    z-index: 5;
+    pointer-events: auto;
+    cursor: grab;
+    transition: transform 0.3s;
+    animation: drift 10s infinite ease-in-out;
+}
+
+.sticky-note::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    border-width: 0 15px 15px 0;
+    border-style: solid;
+    border-color: #facc15 #0a0f1d;
+}
+
+@keyframes drift {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-2deg);
+    }
+
+    50% {
+        transform: translateY(-20px) rotate(2deg);
+    }
+}
+
+.note-1 {
+    top: 20%;
+    right: 5%;
+    animation-delay: 0s;
+}
+
+.note-2 {
+    bottom: 15%;
+    left: 5%;
+    animation-delay: -5s;
+    background: #bae6fd;
+    color: #075985;
+}
+
+/* Blue note */
+
+/* Score Reveal Drama */
+@keyframes scoreNervous {
+
+    0%,
+    100% {
+        transform: scale(1);
+        filter: brightness(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+        filter: brightness(1.3) drop-shadow(0 0 15px var(--primary-color));
+    }
+}
+
+.drama-mode {
+    animation: scoreNervous 0.5s infinite ease-in-out;
+}
+
+/* Witty Easter Eggs */
+.sidebar-item:hover svg {
+    animation: bounce 0.5s ease-in-out;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-5px);
+    }
+}
+
+/* Muscular Bullets 💪 */
+.keyword-pill.matched {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.keyword-pill.matched:hover {
+    transform: scale(1.15) rotate(2deg);
+    box-shadow: 0 0 20px var(--accent-teal);
+}
+
+/* Button Wobble */
+.btn-primary:hover,
+.btn-primary-sm:hover {
+    animation: wobble 0.3s ease-in-out;
+}
+
+@keyframes wobble {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    25% {
+        transform: translateX(-3px) rotate(-1deg);
+    }
+
+    75% {
+        transform: translateX(3px) rotate(1deg);
+    }
+}
+
+/* Mascot Improved Eye Blink (via JS or CSS) */
+.mascot-eyebrows {
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background: var(--text-primary);
+    top: -5px;
+    transition: 0.2s;
+}
+
+[data-theme="midnight"] .sticky-note {
+    background: rgba(254, 240, 138, 0.1);
+    color: #fde047;
+    border: 1px solid rgba(254, 240, 138, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+/* Fire Streak Animation */
+.streak-fire {
+    position: relative;
+    display: inline-block;
+}
+
+.streak-fire::after {
+    content: '🔥';
+    position: absolute;
+    top: -15px;
+    right: -15px;
+    font-size: 1.2rem;
+    animation: flicker 1s infinite alternate;
+}
+
+@keyframes flicker {
+    from {
+        transform: scale(1) rotate(-5deg);
+        opacity: 0.8;
+    }
+
+    to {
+        transform: scale(1.2) rotate(5deg);
+        opacity: 1;
+    }
+}

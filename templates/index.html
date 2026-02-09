@@ -49,6 +49,16 @@
         </div>
     </div>
 
+    <!-- Floating Sticky Notes -->
+    <div class="sticky-note note-1">"ATS robots don't have feelings, but they love keywords." 🤖</div>
+    <div class="sticky-note note-2">"Recruiters spend 6 seconds on a resume. Make them count! ⏱️"</div>
+
+    <!-- Success Celebration Container -->
+    <div id="successPopper" style="position: fixed; inset: 0; pointer-events: none; z-index: 10000; display: none;">
+        <lottie-player src="https://assets4.lottiefiles.com/packages/lf20_m6vsmf4p.json" background="transparent"
+            speed="1.5" style="width: 100%; height: 100%;" autoplay></lottie-player>
+    </div>
+
     <!-- Top Navbar -->
     <nav class="top-navbar">
         <div class="nav-container">
@@ -121,6 +131,10 @@
                 <div class="status-indicator">
                     <span class="status-dot"></span>
                     ATS Logic: v2.4 (Active)
+                </div>
+                <div class="status-indicator" id="streakIndicator" style="margin-top: 0.5rem; display: none;">
+                    <span class="streak-fire"></span>
+                    <span>Streak: <b id="streakCount">0</b> days</span>
                 </div>
             </div>
         </aside>
