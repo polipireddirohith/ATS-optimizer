@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
         rel="stylesheet">
+    <script async src="https://cse.google.com/cse.js?cx=932c5f43d8668495e"></script>
 </head>
 
 <body class="app-layout">
@@ -82,7 +83,7 @@
                             <div>
                                 <label style="display: block; font-size: 0.75rem; margin-bottom: 0.25rem;">Search Engine
                                     ID (CX)</label>
-                                <input type="text" id="cxId" placeholder="012345..."
+                                <input type="text" id="cxId" value="932c5f43d8668495e" placeholder="012345..."
                                     style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
                             </div>
                             <div style="grid-column: span 2; font-size: 0.75rem; color: var(--text-muted);">
@@ -107,6 +108,18 @@
 
                 <!-- Results Area -->
                 <div id="resultsArea" style="display: none; gap: 2rem; display: grid;">
+
+                    <!-- Live Google Search Widget -->
+                    <div class="panel-card">
+                        <div class="panel-header">
+                            <h3>🔍 Live Candidate Search</h3>
+                            <span class="badge">Google Powered</span>
+                        </div>
+                        <div class="info-body" style="min-height: 200px;">
+                            <p style="margin-bottom: 1rem;">Use the search box below to find candidates directly:</p>
+                            <div class="gcse-search"></div>
+                        </div>
+                    </div>
 
                     <!-- Search Strategies -->
                     <div class="panel-card">
