@@ -1,488 +1,319 @@
 /**
- * ATS Resume Optimizer - Frontend Logic
- * Handles file uploads, API communication, and UI updates
+ * ATS Resume Analyzer - Enterprise SaaS Frontend Logic
+ * Inspired by Manatal and modern recruiter ATS systems.
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // DOM Elements
+    // DOM Elements - Workspace
     const form = document.getElementById('atsForm');
     const fileInput = document.getElementById('resumeFile');
-    const fileDisplay = document.querySelector('.file-upload-display');
-    const fileNameDisplay = document.querySelector('.file-name');
+    const dropArea = document.getElementById('dropArea');
     const jdInput = document.getElementById('jdText');
     const charCount = document.getElementById('charCount');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const resumePreview = document.getElementById('resumePreview');
+    const selectedFileName = document.getElementById('selectedFileName');
+
+    // UI Sections
     const uploadSection = document.getElementById('uploadSection');
     const loadingSection = document.getElementById('loadingSection');
     const resultsSection = document.getElementById('resultsSection');
-    const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const navLinks = document.querySelectorAll('.nav-links a');
 
-    // Result Elements
+    // Core Results Widgets
     const scoreNumber = document.getElementById('scoreNumber');
-    const scoreStatus = document.getElementById('scoreStatus');
     const scoreRing = document.getElementById('scoreRing');
-    const breakdownItems = document.getElementById('breakdownItems');
+    const scoreStatus = document.getElementById('scoreStatus');
+    const breakdownGrid = document.getElementById('breakdownGrid');
     const gapsContainer = document.getElementById('gapsContainer');
-    const improvementsContainer = document.getElementById('improvementsContainer');
+    const suitabilityVerdict = document.getElementById('suitabilityVerdict');
+    const suitabilityRecommendation = document.getElementById('suitabilityRecommendation');
+    const recruiterInsights = document.getElementById('recruiterInsights');
     const optimizedResume = document.getElementById('optimizedResume');
+    const improvementsContainer = document.getElementById('improvementsContainer');
 
     // Buttons
+    const newAnalysisBtn = document.getElementById('newAnalysisBtn');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const downloadResumeBtn = document.getElementById('downloadResumeBtn');
-    const mouseGlow = document.getElementById('mouseGlow');
 
-    // Mouse Glow Tracking
-    document.addEventListener('mousemove', (e) => {
-        if (mouseGlow) {
-            // Using requestAnimationFrame for better performance
-            window.requestAnimationFrame(() => {
-                mouseGlow.style.left = e.clientX + 'px';
-                mouseGlow.style.top = e.clientY + 'px';
-            });
-        }
-    });
-
-    // Theme Switcher
+    // Theme Management
     const themeBtns = document.querySelectorAll('[data-set-theme]');
+    const savedTheme = localStorage.getItem('ats-theme-v2');
+
+    if (savedTheme) applyTheme(savedTheme);
+
     themeBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const theme = btn.dataset.setTheme;
-            document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
-
-            // Save preference
-            localStorage.setItem('ats-theme', theme);
+            applyTheme(theme);
+            localStorage.setItem('ats-theme-v2', theme);
         });
     });
 
-    // Load saved theme
-    const savedTheme = localStorage.getItem('ats-theme');
-    if (savedTheme) {
-        document.documentElement.setAttribute('data-theme', savedTheme === 'default' ? '' : savedTheme);
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
     }
 
-    // State
-    let currentData = null;
+    // ==================== Workspace Logic ====================
 
-    // ==================== Event Listeners ====================
+    // Trigger file input
+    dropArea.addEventListener('click', () => fileInput.click());
 
-    // File Input Change
+    // File selection handler
     fileInput.addEventListener('change', (e) => {
         if (e.target.files.length > 0) {
-            const file = e.target.files[0];
-            updateFileDisplay(file.name);
+            handleFileSelect(e.target.files[0]);
         }
     });
 
     // Drag and Drop
-    fileDisplay.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        fileDisplay.style.borderColor = 'var(--primary-color)';
-        fileDisplay.style.background = '#f0f4ff';
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, preventDefaults, false);
     });
 
-    fileDisplay.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        fileDisplay.style.borderColor = 'var(--border-color)';
-        fileDisplay.style.background = 'var(--bg-secondary)';
+    function preventDefaults(e) { e.preventDefault(); e.stopPropagation(); }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.add('active'), false);
     });
 
-    fileDisplay.addEventListener('drop', (e) => {
-        e.preventDefault();
-        fileDisplay.style.borderColor = 'var(--border-color)';
-        fileDisplay.style.background = 'var(--bg-secondary)';
-
-        if (e.dataTransfer.files.length > 0) {
-            fileInput.files = e.dataTransfer.files;
-            updateFileDisplay(e.dataTransfer.files[0].name);
-        }
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropArea.addEventListener(eventName, () => dropArea.classList.remove('active'), false);
     });
 
-    // Character Count
-    jdInput.addEventListener('input', (e) => {
-        charCount.textContent = e.target.value.length;
+    dropArea.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const file = dt.files[0];
+        handleFileSelect(file);
     });
 
-    // Form Submit
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
+    function handleFileSelect(file) {
+        selectedFileName.textContent = `Selected: ${file.name}`;
+        selectedFileName.style.display = 'block';
 
-        if (!fileInput.files.length) {
-            alert('Please select a resume file');
-            return;
-        }
+        // Simulating immediate text extraction preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            // Only preview text if it looks like a text-readable file (basic heuristic)
+            if (file.type === 'text/plain') {
+                resumePreview.textContent = e.target.result;
+            } else {
+                resumePreview.textContent = `[ATS View: ${file.name} - Ready for backend parsing. Professional ATS systems will extract keywords from this ${file.type.split('/')[1].toUpperCase()} document.]`;
+            }
+        };
+        reader.readAsText(file);
+    }
 
-        if (!jdInput.value.trim()) {
-            alert('Please enter a job description');
-            return;
-        }
-
-        await analyzeResume();
+    // JD Character Count
+    jdInput.addEventListener('input', () => {
+        charCount.textContent = jdInput.value.length;
     });
 
-    // Tab Switching
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Remove active class from all tabs and contents
-            document.querySelectorAll('.tab-btn').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-
-            // Add active class to clicked tab and corresponding content
-            tab.classList.add('active');
-            const tabId = tab.dataset.tab;
-            document.getElementById(`${tabId}Tab`).classList.add('active');
+    // Sidebar Navigation
+    sidebarItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            sidebarItems.forEach(i => i.classList.remove('active'));
+            item.classList.add('active');
         });
     });
 
-    // New Analysis
-    newAnalysisBtn.addEventListener('click', () => {
-        resultsSection.style.display = 'none';
-        uploadSection.style.display = 'block';
-        form.reset();
-        resetFileDisplay();
-        window.scrollTo(0, 0);
-    });
+    // ==================== Analysis Logic ====================
 
-    // Download Buttons
-    downloadReportBtn.addEventListener('click', downloadReport);
-    downloadResumeBtn.addEventListener('click', downloadOptimizedResume);
+    analyzeBtn.addEventListener('click', async () => {
+        if (!fileInput.files.length) return alert('Please upload a resume first.');
+        if (!jdInput.value.trim()) return alert('Please provide a job description.');
 
-    // ==================== Functions ====================
+        const formData = new FormData();
+        formData.append('resume_file', fileInput.files[0]);
+        formData.append('jd_text', jdInput.value);
 
-    function updateFileDisplay(filename) {
-        fileNameDisplay.textContent = filename;
-        fileNameDisplay.style.display = 'inline-block';
-        document.querySelector('.upload-text').style.display = 'none';
-        document.querySelector('.upload-icon').style.display = 'none';
-    }
-
-    function resetFileDisplay() {
-        fileNameDisplay.style.display = 'none';
-        document.querySelector('.upload-text').style.display = 'flex';
-        document.querySelector('.upload-icon').style.display = 'block';
-    }
-
-    async function analyzeResume() {
-        // Show loading state
+        // UI State: Loading
         uploadSection.style.display = 'none';
-        loadingSection.style.display = 'block';
-
-        const formData = new FormData(form);
+        loadingSection.style.display = 'flex';
+        simulateProgress();
 
         try {
-            // Simulate progress steps
-            simulateLoading();
-
-            const response = await fetch('/api/analyze', {
-                method: 'POST',
-                body: formData
-            });
-
+            const response = await fetch('/api/analyze', { method: 'POST', body: formData });
             const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error(data.error || 'Analysis failed');
-            }
+            if (!response.ok) throw new Error(data.error);
 
-            currentData = data;
-            displayResults(data);
-
+            window.lastData = data; // Store for downloads
+            renderResults(data);
         } catch (error) {
-            alert(`Error: ${error.message}`);
+            alert(`Error analyzing resume: ${error.message}`);
             loadingSection.style.display = 'none';
-            uploadSection.style.display = 'block';
+            uploadSection.style.display = 'grid';
         }
-    }
+    });
 
-    function simulateLoading() {
+    function simulateProgress() {
         const steps = [
-            'Parsing resume document...',
-            'Extracting key skills and experience...',
-            'Analyzing job description requirements...',
-            'Calculating compatibility match...',
-            'Identifying improvement opportunities...',
-            'Generating optimized resume...'
+            "Initializing ATS parsing engine...",
+            "Extracting identity and contact metadata...",
+            "Contextualizing professional experience...",
+            "Running multi-layer skill match analysis...",
+            "Evaluating document formatting compatibility...",
+            "Finalizing recruiter suitability verdict..."
         ];
-
-        const loadingStep = document.getElementById('loadingStep');
-        let stepIndex = 0;
-
+        const stepEl = document.getElementById('loadingStep');
+        let idx = 0;
         const interval = setInterval(() => {
-            if (stepIndex < steps.length) {
-                loadingStep.textContent = steps[stepIndex];
-                stepIndex++;
+            if (idx < steps.length) {
+                stepEl.textContent = steps[idx++];
             } else {
                 clearInterval(interval);
             }
-        }, 800);
+        }, 1200);
     }
 
-    function displayResults(data) {
+    // ==================== Results Rendering ====================
+
+    function renderResults(data) {
         loadingSection.style.display = 'none';
-        resultsSection.style.display = 'block';
+        resultsSection.style.display = 'grid';
 
-        // Update Score
-        animateScore(data.score.total_score);
-        updateScoreStatus(data.score.total_score);
+        // 1. Score Widget
+        const score = Math.round(data.score.total_score);
+        animateScore(score);
+        updateScoreBadge(score);
 
-        // Update Breakdown
-        renderBreakdown(data.score.breakdown);
+        // 2. Breakdown Grid
+        breakdownGrid.innerHTML = '';
+        Object.entries(data.score.breakdown).forEach(([key, val]) => {
+            const row = document.createElement('div');
+            row.className = 'breakdown-row';
+            row.innerHTML = `<span class="row-label">${key.replace(/_/g, ' ').toUpperCase()}</span><span class="row-val">${val.score}%</span>`;
+            breakdownGrid.innerHTML += row.outerHTML;
+        });
 
-        // Update Gaps
-        renderGaps(data.gaps);
+        // 3. Keyword Mesh
+        gapsContainer.innerHTML = '';
+        // Extracting mandatory skills for the 'Matched' list
+        const mandatory = data.jd_data.mandatory_skills;
+        const found = data.suitability.recruiter_insights[1]?.match(/\d+\/\d+/) ? true : false; // Heuristic skill check
 
-        // Update Improvements
-        renderImprovements(data.improvements);
+        // Simplified keyword display for professional UI
+        data.score.breakdown.skills_match.matched?.forEach(skill => {
+            addKeywordPill(skill, 'matched');
+        });
 
-        // Update Recruiter Insights
-        renderRecruiterInsights(data.suitability);
+        data.gaps.critical.skills?.forEach(skill => {
+            addKeywordPill(skill, 'missing');
+        });
 
-        // Update Optimized Resume
+        // 4. Suitability
+        suitabilityVerdict.textContent = data.suitability.verdict;
+        suitabilityVerdict.style.color = data.suitability.color;
+        suitabilityRecommendation.textContent = data.suitability.recommendation;
+
+        recruiterInsights.innerHTML = '';
+        data.suitability.recruiter_insights.forEach(insight => {
+            const div = document.createElement('div');
+            div.className = 'insight-item';
+            div.textContent = insight;
+            recruiterInsights.appendChild(div);
+        });
+
+        // 5. Editor Workspace
         optimizedResume.textContent = data.optimized_resume;
 
-        // Scroll to results
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    function renderRecruiterInsights(suitability) {
-        const verdictValue = document.getElementById('suitabilityVerdict');
-        const recommendationText = document.getElementById('suitabilityRecommendation');
-        const insightsContainer = document.getElementById('recruiterInsights');
-
-        verdictValue.textContent = suitability.verdict;
-        verdictValue.style.backgroundColor = suitability.color;
-        recommendationText.textContent = `HR Recommendation: ${suitability.recommendation}`;
-
-        insightsContainer.innerHTML = '';
-        suitability.recruiter_insights.forEach(insight => {
+        improvementsContainer.innerHTML = '';
+        data.improvements.keyword_insertions.slice(0, 4).forEach(item => {
             const card = document.createElement('div');
-            card.className = 'insight-card';
-            card.innerHTML = `
-                <div class="insight-icon">
-                    <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
-                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                    </svg>
-                </div>
-                <div class="insight-content">${insight}</div>
-            `;
-            insightsContainer.appendChild(card);
+            card.className = 'suggestion-card';
+            card.innerHTML = `<strong>Add ${item.keyword}</strong> ${item.suggestion}`;
+            improvementsContainer.appendChild(card);
         });
+
+        // Sync editor changes back to data (optional for real apps)
     }
 
-    function animateScore(targetScore) {
-        let currentScore = 0;
-        const duration = 1500;
-        const interval = 20;
-        const increment = targetScore / (duration / interval);
+    function addKeywordPill(text, type) {
+        const pill = document.createElement('div');
+        pill.className = `keyword-pill ${type}`;
+        pill.textContent = text;
+        gapsContainer.appendChild(pill);
+    }
+
+    function animateScore(target) {
+        let current = 0;
+        const ring = scoreRing;
+        const circumference = 2 * Math.PI * 45;
 
         const timer = setInterval(() => {
-            currentScore += increment;
-            if (currentScore >= targetScore) {
-                currentScore = targetScore;
+            if (current >= target) {
+                current = target;
                 clearInterval(timer);
             }
-
-            scoreNumber.textContent = Math.round(currentScore);
-
-            // Update circle stroke
-            const circumference = 2 * Math.PI * 85; // r=85
-            const offset = circumference - (currentScore / 100) * circumference;
-            scoreRing.style.strokeDasharray = `${circumference} ${circumference}`;
-            scoreRing.style.strokeDashoffset = offset;
-
-        }, interval);
+            scoreNumber.textContent = Math.round(current);
+            const offset = circumference - (current / 100) * circumference;
+            ring.style.strokeDashoffset = offset;
+            current += 1.5;
+        }, 30);
     }
 
-    function updateScoreStatus(score) {
-        let statusHtml = '';
-        let statusClass = '';
-
-        if (score >= 80) {
-            statusClass = 'excellent';
-            statusHtml = `
-                <div class="status-badge excellent">EXCELLENT MATCH</div>
-                <p class="status-message">Your resume is highly optimized for this role. You have a strong chance of passing the ATS.</p>
-            `;
-        } else if (score >= 60) {
-            statusClass = 'good';
-            statusHtml = `
-                <div class="status-badge good">GOOD MATCH</div>
-                <p class="status-message">Good potential, but there are some important gaps to address to improve your ranking.</p>
-            `;
-        } else {
-            statusClass = 'needs-improvement';
-            statusHtml = `
-                <div class="status-badge needs-improvement">NEEDS IMPROVEMENT</div>
-                <p class="status-message">Your resume needs significant optimization to pass the ATS filters for this role.</p>
-            `;
-        }
-
-        scoreStatus.innerHTML = statusHtml;
+    function updateScoreBadge(score) {
+        scoreStatus.className = 'score-verdict ' + (score >= 75 ? 'high' : (score >= 50 ? 'mid' : 'low'));
+        scoreStatus.textContent = score >= 75 ? 'Strong Match' : (score >= 50 ? 'Potential Match' : 'Weak Match');
     }
 
-    function renderBreakdown(breakdown) {
-        breakdownItems.innerHTML = '';
+    // Re-launch analysis
+    newAnalysisBtn.addEventListener('click', () => {
+        resultsSection.style.display = 'none';
+        uploadSection.style.display = 'grid';
+        form.reset();
+        jdInput.value = '';
+        resumePreview.textContent = 'No document uploaded yet...';
+        selectedFileName.style.display = 'none';
+        window.scrollTo(0, 0);
+    });
 
-        for (const [key, value] of Object.entries(breakdown)) {
-            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            const html = `
-                <div class="breakdown-item">
-                    <div>
-                        <span class="breakdown-label">${label}</span>
-                        <span class="breakdown-weight">(${value.weight})</span>
-                    </div>
-                    <span class="breakdown-score">${value.score}/100</span>
-                </div>
-            `;
-            breakdownItems.innerHTML += html;
-        }
-    }
+    // ==================== Downloads ====================
 
-    function renderGaps(gaps) {
-        gapsContainer.innerHTML = '';
-
-        // Critical Gaps
-        if (gaps.critical && Object.keys(gaps.critical).length > 0) {
-            let hasCritical = false;
-            let html = `<div class="gap-section critical"><h4><span class="gap-badge critical">Critical</span> Missing Requirements</h4><ul class="gap-list">`;
-
-            for (const [key, items] of Object.entries(gaps.critical)) {
-                if (items && items.length > 0) {
-                    hasCritical = true;
-                    // Format key for display
-                    const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                    items.forEach(item => {
-                        html += `<li>Missing ${label}: <strong>${item}</strong></li>`;
-                    });
-                }
-            }
-            html += `</ul></div>`;
-
-            if (hasCritical) gapsContainer.innerHTML += html;
-        }
-
-        // Important Gaps
-        if (gaps.important && Object.keys(gaps.important).length > 0) {
-            let hasImportant = false;
-            let html = `<div class="gap-section important"><h4><span class="gap-badge important">Important</span> Optimization Opportunities</h4><ul class="gap-list">`;
-
-            for (const [key, items] of Object.entries(gaps.important)) {
-                if (items && items.length > 0) {
-                    hasImportant = true;
-                    items.forEach(item => {
-                        html += `<li>${item}</li>`;
-                    });
-                }
-            }
-            html += `</ul></div>`;
-
-            if (hasImportant) gapsContainer.innerHTML += html;
-        }
-
-        // Formatting Issues
-        if (gaps.formatting_issues && gaps.formatting_issues.length > 0) {
-            let html = `<div class="gap-section optional"><h4><span class="gap-badge optional">Formatting</span> ATS Readability Issues</h4><ul class="gap-list">`;
-            gaps.formatting_issues.forEach(issue => {
-                html += `<li>${issue}</li>`;
-            });
-            html += `</ul></div>`;
-            gapsContainer.innerHTML += html;
-        }
-
-        if (gapsContainer.innerHTML === '') {
-            gapsContainer.innerHTML = '<p>No significant gaps detected! Great job.</p>';
-        }
-    }
-
-    function renderImprovements(improvements) {
-        improvementsContainer.innerHTML = '';
-
-        // Keyword Insertions
-        if (improvements.keyword_insertions && improvements.keyword_insertions.length > 0) {
-            let html = `<div class="improvement-section"><h4>Keyword Strategy</h4>`;
-            improvements.keyword_insertions.forEach(item => {
-                html += `
-                    <div class="improvement-item">
-                        <p><strong>Add "${item.keyword}"</strong> to ${item.location}</p>
-                        <p class="text-sm text-muted">${item.suggestion}</p>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            improvementsContainer.innerHTML += html;
-        }
-
-        // Bullet Rewrites
-        if (improvements.bullet_point_rewrites && improvements.bullet_point_rewrites.length > 0) {
-            let html = `<div class="improvement-section"><h4>Bullet Point Enhancements</h4>`;
-            improvements.bullet_point_rewrites.forEach(item => {
-                html += `
-                    <div class="improvement-item">
-                        <p class="text-muted strike">Original: ${item.original}</p>
-                        <p><strong>Improved:</strong> ${item.improved}</p>
-                        <p class="text-sm text-muted"><em>Why: ${item.reason}</em></p>
-                    </div>
-                `;
-            });
-            html += `</div>`;
-            improvementsContainer.innerHTML += html;
-        }
-    }
-
-    async function downloadReport() {
-        if (!currentData) return;
-
+    downloadResumeBtn.addEventListener('click', async () => {
+        if (!window.lastData) return;
         try {
-            const response = await fetch('/api/download-report', {
+            const res = await fetch('/api/download-resume', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(currentData)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ resume_text: optimizedResume.textContent })
             });
-
-            if (!response.ok) throw new Error('Download failed');
-
-            const blob = await response.blob();
+            const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'ATS_Report.txt';
-            document.body.appendChild(a);
+            a.download = 'ATS_Optimized_Resume.txt';
             a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+        } catch (e) { alert('Export error.'); }
+    });
 
-        } catch (error) {
-            alert('Failed to download report');
-        }
-    }
-
-    async function downloadOptimizedResume() {
-        if (!currentData) return;
-
+    downloadReportBtn.addEventListener('click', async () => {
+        // Logic reused from previous implementation
         try {
-            const response = await fetch('/api/download-resume', {
+            const res = await fetch('/api/download-report', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ resume_text: currentData.optimized_resume })
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(window.lastData || {}) // Note: need to store lastData
             });
-
-            if (!response.ok) throw new Error('Download failed');
-
-            const blob = await response.blob();
+            const blob = await res.blob();
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'Optimized_Resume.txt';
-            document.body.appendChild(a);
+            a.download = 'ATS_Professional_Report.txt';
             a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
+        } catch (e) { alert('Report generation error.'); }
+    });
 
-        } catch (error) {
-            alert('Failed to download resume');
+    // ==================== Interactions ====================
+    // Mouse Glow
+    const glow = document.getElementById('mouseGlow');
+    document.addEventListener('mousemove', (e) => {
+        if (glow) {
+            glow.style.left = e.clientX + 'px';
+            glow.style.top = e.clientY + 'px';
         }
-    }
+    });
 });
