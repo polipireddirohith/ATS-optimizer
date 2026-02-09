@@ -167,10 +167,11 @@ def download_report():
         report = ats_engine.generate_report(
             data.get('resume_data', {}),
             data.get('jd_data', {}),
-            data.get('score_data', {}),
+            data.get('score', {}), # Fixed: use 'score' instead of 'score_data'
             data.get('gaps', {}),
             data.get('improvements', {}),
-            data.get('optimized_resume', '')
+            data.get('optimized_resume', ''),
+            data.get('suitability', {})
         )
         
         # Create temporary file

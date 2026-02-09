@@ -904,7 +904,8 @@ class ATSEngine:
         return formatted
     
     def generate_report(self, resume_data: Dict, jd_data: Dict, score_data: Dict, 
-                       gaps: Dict, improvements: Dict, optimized_resume: str) -> str:
+                       gaps: Dict, improvements: Dict, optimized_resume: str,
+                       suitability_data: Dict = None) -> str:
         """
         Generate comprehensive ATS report
         
@@ -954,6 +955,19 @@ class ATSEngine:
                 report.append(f"  {gap_type.replace('_', ' ').title()}:")
                 for item in items[:5]:
                     report.append(f"    - {item}")
+        
+        # Suitability
+        if suitability_data:
+            report.append("\n" + "=" * 80)
+            report.append("HR SUITABILITY ASSESSMENT")
+            report.append("=" * 80)
+            report.append(f"VERDICT: {suitability_data.get('verdict', 'N/A')}")
+            report.append(f"RISK LEVEL: {suitability_data.get('risk_level', 'N/A')}")
+            report.append(f"RECOMMENDATION: {suitability_data.get('recommendation', 'N/A')}")
+            
+            report.append("\nRECRUITER INSIGHTS:")
+            for insight in suitability_data.get('recruiter_insights', []):
+                report.append(f"  • {insight}")
         
         # Improvements
         report.append("\n" + "=" * 80)
