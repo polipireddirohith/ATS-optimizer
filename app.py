@@ -11,6 +11,60 @@ import os
 import tempfile
 import json
 from datetime import datetime
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+
+# Email Configuration
+# TODO: Replace with actual SMTP credentials
+SMTP_SERVER = "smtp.gmail.com"
+SMTP_PORT = 587
+SMTP_EMAIL = "your-company-email@gmail.com" 
+SMTP_PASSWORD = "your-app-password"
+
+def send_shortlist_notification(candidate_email, candidate_name):
+    """Send an email notification to the shortlisted candidate"""
+    # Check if credentials are set (simple validation)
+    if "your-company-email" in SMTP_EMAIL:
+        print(f"[MOCK EMAIL] To: {candidate_email}\nSubject: Shortlisted\nBody: Dear {candidate_name}, You have been shortlisted! (Configure SMTP in app.py to send real emails)")
+        return True
+
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = SMTP_EMAIL
+        msg['To'] = candidate_email
+        msg['Subject'] = "Update on your Application: Shortlisted"
+
+        body = f"""
+Dear {candidate_name},
+
+We are pleased to inform you that your application has been shortlisted by our recruitment team.
+Your skills and experience align well with our requirements.
+
+Our team will contact you shortly regarding the next steps in the hiring process.
+
+Best regards,
+Talent Acquisition Team
+(Sent via ATS Optimizer)
+        """
+        msg.attach(MIMEText(body, 'plain'))
+
+        # Connect to server
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        
+        # Send email
+        text = msg.as_string()
+        server.sendmail(SMTP_EMAIL, candidate_email, text)
+        server.quit()
+        
+        print(f"Email sent successfully to {candidate_email}")
+        return True
+    
+    except Exception as e:
+        print(f"Failed to send email to {candidate_email}: {str(e)}")
+        return False
 
 
 from ats_engine import ATSEngine
@@ -310,10 +364,24 @@ def bulk_analyze_resumes():
 # Shortlist Management Endpoints
 @app.route('/api/shortlist/add', methods=['POST'])
 def add_to_shortlist():
-    """Add a candidate to the shortlist"""
+    """Add a candidate to the shortlist and send notification email"""
     try:
         data = request.get_json()
         result = shortlist_manager.add_candidate(data)
+        
+        # Send Email Notification if successfully added
+        if result.get('success'):
+            candidate_name = data.get('candidate_name', 'Candidate')
+            email = data.get('email')
+            
+            if email:
+                email_sent = send_shortlist_notification(email, candidate_name)
+                result['email_sent'] = email_sent
+                if email_sent:
+                    result['message'] += " (Email sent to candidate)"
+            else:
+                 result['message'] += " (No email found for notification)"
+                 
         return jsonify(result)
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500

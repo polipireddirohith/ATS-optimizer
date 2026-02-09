@@ -691,7 +691,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.textContent = "Shortlisted ⭐";
                     btn.style.borderColor = "var(--accent-teal)";
                     triggerConfetti();
-                    geminiTalk("Excellent choice! Candidate saved to shortlist. ⭐");
+                    geminiTalk(result.message || "Candidate saved to shortlist. ⭐");
                 } else {
                     alert(result.message || 'Failed to add to shortlist');
                 }
