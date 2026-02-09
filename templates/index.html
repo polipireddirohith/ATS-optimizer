@@ -50,8 +50,14 @@
     </div>
 
     <!-- Floating Sticky Notes -->
-    <div class="sticky-note note-1">"ATS robots don't have feelings, but they love keywords." 🤖</div>
-    <div class="sticky-note note-2">"Recruiters spend 6 seconds on a resume. Make them count! ⏱️"</div>
+    <div class="sticky-note note-1">
+        <button class="close-note" onclick="this.parentElement.style.display='none'">×</button>
+        "ATS robots don't have feelings, but they love keywords." 🤖
+    </div>
+    <div class="sticky-note note-2">
+        <button class="close-note" onclick="this.parentElement.style.display='none'">×</button>
+        "Recruiters spend 6 seconds on a resume. Make them count! ⏱️"
+    </div>
 
     <!-- Success Celebration Container -->
     <div id="successPopper" style="position: fixed; inset: 0; pointer-events: none; z-index: 10000; display: none;">

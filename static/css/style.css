@@ -1677,13 +1677,31 @@ body {
     font-style: italic;
     border-radius: 2px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 2100;
-    /* Above sidebar (900), navbar (1000), and AI companion (2000) */
-    /* Increased to stay above app-container (z-index 10) */
+    z-index: 2500;
     pointer-events: auto;
     cursor: grab;
     transition: transform 0.3s;
     animation: drift 10s infinite ease-in-out;
+    padding: 1.25rem 1rem 1rem 1rem;
+    /* Space for close button */
+}
+
+.close-note {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.2rem;
+    cursor: pointer;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    font-weight: bold;
+}
+
+.close-note:hover {
+    opacity: 1;
 }
 
 .sticky-note:hover {
@@ -1715,20 +1733,27 @@ body {
 }
 
 .note-1 {
-    top: 25%;
-    right: 2rem;
+    top: 15%;
+    right: 1.5rem;
     animation-delay: 0s;
     transform: rotate(2deg);
 }
 
 .note-2 {
-    bottom: 20%;
-    left: calc(var(--sidebar-width) + 2rem);
-    /* Ensure it's outside the sidebar */
+    bottom: 12%;
+    right: 1.5rem;
+    /* Stack both on right edge to keep workspace clear */
     animation-delay: -5s;
     background: #bae6fd;
     color: #075985;
     transform: rotate(-3deg);
+}
+
+/* Hide on screens where they might overlap main content */
+@media screen and (max-width: 1400px) {
+    .sticky-note {
+        display: none !important;
+    }
 }
 
 /* Blue note */
