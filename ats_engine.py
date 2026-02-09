@@ -228,11 +228,16 @@ class ATSEngine:
         return {
             'total_score': round(total_score, 2),
             'breakdown': {
-                'keyword_match': {'score': round(keyword_score, 2), 'weight': '40%'},
-                'skills_match': {'score': round(skills_score, 2), 'weight': '25%'},
-                'experience_alignment': {'score': round(experience_score, 2), 'weight': '15%'},
+                'keyword_match': {'score': round(keyword_score, 2), 'weight': '35%'},
+                'skills_match': {
+                    'score': round(skills_score, 2), 
+                    'weight': '40%',
+                    'matched': list(set(self._normalize_skill(s) for s in resume_data['skills']) & set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])),
+                    'missing': list(set(self._normalize_skill(s) for s in jd_data['mandatory_skills']) - set(self._normalize_skill(s) for s in resume_data['skills']))
+                },
+                'experience_alignment': {'score': round(experience_score, 2), 'weight': '10%'},
                 'domain_similarity': {'score': round(domain_score, 2), 'weight': '10%'},
-                'formatting': {'score': round(formatting_score, 2), 'weight': '10%'}
+                'formatting': {'score': round(formatting_score, 2), 'weight': '5%'}
             }
         }
     
@@ -248,12 +253,16 @@ class ATSEngine:
             Dictionary containing gap analysis
         """
         resume_keywords = set(resume_data['keywords'])
-        resume_skills = set(resume_data['skills'])
+        resume_skills = set(self._normalize_skill(s) for s in resume_data['skills'])
         
-        # Find missing elements
-        missing_mandatory = set(jd_data['mandatory_skills']) - resume_skills
-        missing_preferred = set(jd_data['preferred_skills']) - resume_skills
-        missing_tools = set(jd_data['tools_technologies']) - resume_skills
+        # Find missing elements with normalization support
+        mandatory_jd = set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])
+        preferred_jd = set(self._normalize_skill(s) for s in jd_data['preferred_skills'])
+        tools_jd = set(self._normalize_skill(s) for s in jd_data['tools_technologies'])
+
+        missing_mandatory = mandatory_jd - resume_skills
+        missing_preferred = preferred_jd - resume_skills
+        missing_tools = tools_jd - resume_skills
         missing_keywords = set(jd_data['domain_keywords']) - resume_keywords
         
         # Classify gaps

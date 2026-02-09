@@ -1677,12 +1677,19 @@ body {
     font-style: italic;
     border-radius: 2px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 1100;
+    z-index: 2100;
+    /* Above sidebar (900), navbar (1000), and AI companion (2000) */
     /* Increased to stay above app-container (z-index 10) */
     pointer-events: auto;
     cursor: grab;
     transition: transform 0.3s;
     animation: drift 10s infinite ease-in-out;
+}
+
+.sticky-note:hover {
+    transform: scale(1.1) !important;
+    z-index: 3000;
+    animation-play-state: paused;
 }
 
 .sticky-note::before {
@@ -1708,17 +1715,20 @@ body {
 }
 
 .note-1 {
-    top: 20%;
-    right: 5%;
+    top: 25%;
+    right: 2rem;
     animation-delay: 0s;
+    transform: rotate(2deg);
 }
 
 .note-2 {
-    bottom: 15%;
-    left: 5%;
+    bottom: 20%;
+    left: calc(var(--sidebar-width) + 2rem);
+    /* Ensure it's outside the sidebar */
     animation-delay: -5s;
     background: #bae6fd;
     color: #075985;
+    transform: rotate(-3deg);
 }
 
 /* Blue note */
