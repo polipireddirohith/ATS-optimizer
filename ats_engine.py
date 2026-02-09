@@ -357,12 +357,18 @@ class ATSEngine:
         formatting_score = self._calculate_formatting_score(resume_data)
         cert_score = self._calculate_certifications_match(resume_data, jd_data)
         
+        # Education matching
+        req_edu = jd_data.get('education_required', 'Not specified')
+        resume_edu_list = resume_data.get('education', [])
+        edu_score = self._calculate_education_match(resume_edu_list, req_edu)
+        
         # Weighted total
         total_score = (
             domain_score * 0.30 +
             skills_score * 0.25 +
             keyword_score * 0.20 +
-            experience_score * 0.15 +
+            experience_score * 0.10 +
+            edu_score * 0.05 +
             cert_score * 0.05 +
             formatting_score * 0.05
         )
@@ -401,7 +407,8 @@ class ATSEngine:
                     'missing': list(missing_mandatory)
                 },
                 'keyword_match': {'score': round(keyword_score, 2), 'weight': '20%'},
-                'experience_alignment': {'score': round(experience_score, 2), 'weight': '15%'},
+                'experience_alignment': {'score': round(experience_score, 2), 'weight': '10%'},
+                'education': {'score': round(edu_score, 2), 'weight': '5%'},
                 'certifications': {'score': round(cert_score, 2), 'weight': '5%'},
                 'formatting': {'score': round(formatting_score, 2), 'weight': '5%'}
             }
@@ -668,13 +675,37 @@ class ATSEngine:
         return experiences
     
     def _extract_education(self, text: str) -> List[str]:
-        """Extract education information"""
-        education_section = self._extract_section(text, ['education', 'academic', 'qualification'])
+        """
+        Extract education information with improved robustness.
+        We look for common education headers and capture the content until the next header.
+        """
+        education_headers = [
+            'education', 'academic background', 'academic history', 'academic qualification', 
+            'educational qualification', 'tertiary education', 'professional qualifications', 
+            'university', 'academic record', 'academics', 'degrees', 'educational profile'
+        ]
+        
+        education_section = self._extract_section(text, education_headers)
         
         if not education_section:
+            # Fallback: check for standalone "Education" header in a more aggressive way
+            education_section = self._extract_section(text, ['education', 'academic'])
+            
+        if not education_section:
             return []
+            
+        # Clean up the output - education entries are typically 1-2 lines per degree
+        lines = [line.strip() for line in education_section.split('\n') if line.strip()]
         
-        return [line.strip() for line in education_section.split('\n') if line.strip()]
+        # Filter out lines that are probably not education (like long paragraphs or weird artifacts)
+        # Most education lines are shorter and contain degree/university names
+        valid_education = []
+        for line in lines:
+            if len(line) < 5 or len(line) > 150: # Likely too short or too long
+                continue
+            valid_education.append(line)
+            
+        return valid_education[:5] # Return top 5 education entries to keep it concise
     
     def _extract_certifications(self, text: str) -> List[str]:
         """Extract certifications"""
@@ -753,30 +784,43 @@ class ATSEngine:
         return issues
     
     def _extract_section(self, text: str, keywords: List[str]) -> str:
-        """Extract a specific section from resume"""
+        """Extract a specific section from resume with improved header detection"""
         lines = text.split('\n')
         section_lines = []
         in_section = False
         
-        for line in lines:
-            line_lower = line.lower().strip()
+        for i, line in enumerate(lines):
+            line_strip = line.strip()
+            line_lower = line_strip.lower()
             
-            if any(keyword in line_lower for keyword in keywords):
+            if not line_strip:
+                continue
+
+            # A section header is usually short and contains one of our keywords
+            # We also check if it's likely a header (all caps, or very short)
+            is_potential_header = any(keyword == line_lower or f"{keyword}:" == line_lower for keyword in keywords)
+            if not is_potential_header:
+                # Catch cases like "EDUCATION AND CERTIFICATIONS"
+                is_potential_header = any(keyword in line_lower for keyword in keywords) and len(line_strip) < 40
+
+            if is_potential_header and not in_section:
                 in_section = True
                 continue
             
             if in_section:
+                # Exit condition: another header detected
                 if self._is_section_header(line) and not any(k in line_lower for k in keywords):
                     break
-                section_lines.append(line)
+                section_lines.append(line_strip)
         
         return '\n'.join(section_lines)
     
     def _is_section_header(self, line: str) -> bool:
         """Check if line is a section header"""
         common_headers = [
-            'summary', 'profile', 'experience', 'education', 'skills',
-            'certifications', 'projects', 'achievements', 'awards'
+            'summary', 'profile', 'experience', 'employment', 'education', 'academic', 
+            'qualification', 'skills', 'technical', 'certifications', 'certificates', 
+            'projects', 'achievements', 'awards', 'degrees', 'history', 'background'
         ]
         line_lower = line.lower().strip()
         return any(header in line_lower for header in common_headers) and len(line.strip()) < 50
@@ -973,6 +1017,33 @@ class ATSEngine:
                 matched_count += 1
                 
         return (matched_count / len(required_certs)) * 100
+
+    def _calculate_education_match(self, resume_edu: List[str], req_edu: str) -> float:
+        """Calculate score based on how well resume education matches JD requirements"""
+        if req_edu == 'Not specified':
+            return 100.0
+            
+        resume_edu_text = " ".join(resume_edu).lower()
+        req_level = req_edu.lower()
+        
+        # Check for specific degree level matches
+        for level, keywords in self.education_levels.items():
+            if level == req_level:
+                if any(re.search(r'\b' + re.escape(kw) + r'\b', resume_edu_text) for kw in keywords):
+                    return 100.0
+                    
+        # Check for partial/higher matches (e.g. PhD matches Master requirement)
+        hierarchy = ['bachelor', 'master', 'phd']
+        try:
+            req_idx = hierarchy.index(req_level)
+            for level in hierarchy[req_idx:]:
+                keywords = self.education_levels[level]
+                if any(re.search(r'\b' + re.escape(kw) + r'\b', resume_edu_text) for kw in keywords):
+                    return 100.0
+        except ValueError:
+            pass
+            
+        return 0.0
 
     def _calculate_experience_alignment(self, resume_data: Dict, jd_data: Dict) -> float:
         """Calculate experience alignment based on duration and context"""
