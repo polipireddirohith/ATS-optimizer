@@ -277,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const interval = setInterval(() => {
             if (idx < steps.length) stepEl.textContent = steps[idx++];
             else clearInterval(interval);
-        }, 1500);
+        }, 400);
     }
 
     // ==================== Results Rendering ====================
@@ -313,6 +313,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateHrControls(data) {
         const controls = document.getElementById('hrControls');
         if (!controls) return;
+
+        const msg = document.getElementById('hrVisibilityMsg');
+        if (!msg) return;
 
         const vis = data.visibility_status || (data.score && data.score.visibility_status);
         if (!vis) return;
@@ -395,7 +398,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 geminiTalk("Don’t panic. Even pro resumes start somewhere. 🎯");
             }
-        }, 2000);
+        }, 300);
 
         // 2. Breakdown
         breakdownGrid.innerHTML = '';
