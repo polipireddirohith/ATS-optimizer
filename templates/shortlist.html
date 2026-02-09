@@ -263,12 +263,40 @@
             table.style.display = 'block';
             emptyState.style.display = 'none';
 
-            tbody.innerHTML = candidates.map(candidate => `
-                <tr>
-                    <td><strong>${candidate.candidate_name || 'Unknown'}</strong></td>
-                    <td>${candidate.email || 'N/A'}</td>
-                    <td>${candidate.phone || 'N/A'}</td>
-                    <td><strong>${Math.round(candidate.total_score || 0)}</strong></td>
+            tbody.innerHTML = candidates.map((candidate, index) => {
+                const matchedSkills = Array.isArray(candidate.matched_skills) ? candidate.matched_skills : [];
+                const missingSkills = Array.isArray(candidate.missing_skills) ? candidate.missing_skills : [];
+                const certifications = Array.isArray(candidate.matched_certifications) ? candidate.matched_certifications : [];
+
+                return `
+                <tr onclick="toggleDetails('details-${index}')" style="cursor: pointer;">
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.2rem;">👤</span>
+                            <div>
+                                <strong>${candidate.candidate_name || 'Unknown'}</strong>
+                                <div style="font-size: 0.75rem; color: var(--text-muted);">Click to expand</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="mailto:${candidate.email}" onclick="event.stopPropagation();" style="color: var(--accent-teal); text-decoration: none;">
+                            ${candidate.email || 'N/A'}
+                        </a>
+                    </td>
+                    <td>
+                        <a href="tel:${candidate.phone}" onclick="event.stopPropagation();" style="color: var(--accent-teal); text-decoration: none;">
+                            ${candidate.phone || 'N/A'}
+                        </a>
+                    </td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <strong style="font-size: 1.2rem; color: ${candidate.total_score >= 75 ? '#22c55e' : candidate.total_score >= 50 ? '#f59e0b' : '#ef4444'};">
+                                ${Math.round(candidate.total_score || 0)}
+                            </strong>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">/100</span>
+                        </div>
+                    </td>
                     <td>${candidate.verdict || 'N/A'}</td>
                     <td>
                         <span class="status-badge status-${candidate.status || 'shortlisted'}">
@@ -276,7 +304,7 @@
                         </span>
                     </td>
                     <td>${new Date(candidate.shortlisted_at).toLocaleDateString()}</td>
-                    <td>
+                    <td onclick="event.stopPropagation();">
                         <div class="action-buttons">
                             <select class="btn-small" onchange="updateStatus('${candidate.email}', this.value)">
                                 <option value="">Update Status</option>
@@ -291,7 +319,107 @@
                         </div>
                     </td>
                 </tr>
-            `).join('');
+                <tr id="details-${index}" style="display: none; background: var(--bg-alt);">
+                    <td colspan="8" style="padding: 2rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                            <!-- Contact Details -->
+                            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <h3 style="margin: 0 0 1rem 0; color: var(--accent-teal); display: flex; align-items: center; gap: 0.5rem;">
+                                    📞 Contact Information
+                                </h3>
+                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Full Name</div>
+                                        <div style="font-weight: 600;">${candidate.candidate_name || 'N/A'}</div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Email Address</div>
+                                        <a href="mailto:${candidate.email}" style="color: var(--accent-teal); text-decoration: none; font-weight: 500;">
+                                            ${candidate.email || 'N/A'}
+                                        </a>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.25rem;">Phone Number</div>
+                                        <a href="tel:${candidate.phone}" style="color: var(--accent-teal); text-decoration: none; font-weight: 500;">
+                                            ${candidate.phone || 'N/A'}
+                                        </a>
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                        <a href="mailto:${candidate.email}" style="flex: 1; padding: 0.75rem; background: var(--accent-teal); color: white; text-decoration: none; border-radius: 8px; text-align: center; font-weight: 600;">
+                                            📧 Send Email
+                                        </a>
+                                        <a href="tel:${candidate.phone}" style="flex: 1; padding: 0.75rem; background: var(--accent-purple); color: white; text-decoration: none; border-radius: 8px; text-align: center; font-weight: 600;">
+                                            📞 Call Now
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Skills Breakdown -->
+                            <div style="background: var(--bg-card); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                                <h3 style="margin: 0 0 1rem 0; color: var(--accent-purple); display: flex; align-items: center; gap: 0.5rem;">
+                                    🎯 Skills Analysis
+                                </h3>
+                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                            ✅ Matched Skills (${matchedSkills.length})
+                                        </div>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                            ${matchedSkills.length > 0 ? matchedSkills.map(skill => `
+                                                <span style="padding: 0.4rem 0.8rem; background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid #22c55e; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                                    ${skill}
+                                                </span>
+                                            `).join('') : '<span style="color: var(--text-muted); font-size: 0.85rem;">None listed</span>'}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                            ❌ Missing Skills (${missingSkills.length})
+                                        </div>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                            ${missingSkills.length > 0 ? missingSkills.map(skill => `
+                                                <span style="padding: 0.4rem 0.8rem; background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid #ef4444; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                                    ${skill}
+                                                </span>
+                                            `).join('') : '<span style="color: var(--text-muted); font-size: 0.85rem;">None</span>'}
+                                        </div>
+                                    </div>
+                                    ${certifications.length > 0 ? `
+                                    <div>
+                                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                                            🏆 Certifications (${certifications.length})
+                                        </div>
+                                        <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                            ${certifications.map(cert => `
+                                                <span style="padding: 0.4rem 0.8rem; background: rgba(245, 158, 11, 0.1); color: #f59e0b; border: 1px solid #f59e0b; border-radius: 20px; font-size: 0.75rem; font-weight: 600;">
+                                                    ${cert}
+                                                </span>
+                                            `).join('')}
+                                        </div>
+                                    </div>
+                                    ` : ''}
+                                    <div style="margin-top: 0.5rem; padding: 0.75rem; background: var(--bg-alt); border-radius: 8px;">
+                                        <div style="font-size: 0.75rem; color: var(--text-muted);">Education Match</div>
+                                        <div style="font-weight: 600; color: ${candidate.education_match ? '#22c55e' : '#ef4444'};">
+                                            ${candidate.education_match ? '✅ Meets Requirements' : '❌ Does Not Meet'}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+        }
+
+        function toggleDetails(id) {
+            const detailsRow = document.getElementById(id);
+            if (detailsRow.style.display === 'none') {
+                detailsRow.style.display = 'table-row';
+            } else {
+                detailsRow.style.display = 'none';
+            }
         }
 
         function updateStatistics(candidates) {
