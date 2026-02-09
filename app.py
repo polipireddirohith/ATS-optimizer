@@ -8,6 +8,12 @@ Built with Flask for the backend and vanilla HTML/CSS/JS for the frontend
 from flask import Flask, render_template, request, jsonify, send_file
 from werkzeug.utils import secure_filename
 import os
+import re
+import urllib.parse
+try:
+    import requests
+except ImportError:
+    requests = None
 import tempfile
 import json
 from datetime import datetime
@@ -497,10 +503,7 @@ def generate_sourcing():
         data = request.get_json()
         jd_text = data.get('jd_text', '')
         
-        # Simple keyword extraction
-        import re
-        import urllib.parse
-        
+        # Keyword extraction using global re
         words = re.findall(r'\b[A-Z][a-zA-Z]+\b', jd_text)
         common = {'The', 'And', 'For', 'With', 'Job', 'Description', 'We', 'Are', 'You', 'Will', 'Work', 'Team', 'Role', 'This', 'Our', 'To', 'In', 'Of', 'Is', 'Be', 'Or', 'As', 'An', 'At', 'By', 'On', 'It', 'If'}
         keywords = [w for w in words if w not in common and len(w) > 3]
@@ -529,35 +532,45 @@ def generate_sourcing():
         candidates_list = []
         
         if api_key and cx_id:
-            try:
-                import requests
-                # Targeted Query for LinkedIn Profiles
-                search_query = f'site:linkedin.com/in/ {keyword_str}'
-                url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx_id}&q={search_query}"
-                resp = requests.get(url, timeout=5)
-                
-                if resp.status_code == 200:
-                    results = resp.json().get('items', [])
-                    for item in results[:5]:
-                        title = item.get('title', 'Unknown Professional')
-                        # Parse "Name - Role | Company" format common on LinkedIn
-                        parts = title.split(' - ')
-                        name = parts[0].strip()
-                        role = parts[1] if len(parts) > 1 else 'Professional'
-                        if '|' in role: role = role.split('|')[0].strip()
-                        
-                        candidates_list.append({
-                            'name': name,
-                            'title': role,
-                            'match_score': 85 + (len(results) - results.index(item)), # Pseudo score based on rank
-                            'skills': unique_keywords[:3], # Inferred from context
-                            'profile_url': item.get('link')
-                        })
-            except Exception as e:
-                print(f"Google API Error: {str(e)}")
+            if requests:
+                try:
+                    # Targeted Query for LinkedIn Profiles
+                    search_query = f'site:linkedin.com/in/ {keyword_str}'
+                    # Use params for safer encoding
+                    params = {
+                        'key': api_key,
+                        'cx': cx_id,
+                        'q': search_query
+                    }
+                    resp = requests.get("https://www.googleapis.com/customsearch/v1", params=params, timeout=5)
+                    
+                    if resp.status_code == 200:
+                        results = resp.json().get('items', [])
+                        for item in results[:5]:
+                            title = item.get('title', 'Unknown Professional')
+                            parts = title.split(' - ')
+                            name = parts[0].strip()
+                            role = parts[1] if len(parts) > 1 else 'Professional'
+                            if '|' in role: role = role.split('|')[0].strip()
+                            
+                            candidates_list.append({
+                                'name': name,
+                                'title': role,
+                                'match_score': 85 + (len(results) - results.index(item)),
+                                'skills': unique_keywords[:3],
+                                'profile_url': item.get('link')
+                            })
+                    else:
+                        print(f"Google API Error: {resp.status_code} - {resp.text}")
+                except Exception as e:
+                    print(f"Google API Exception: {str(e)}")
+            else:
+                print("Warning: 'requests' module not installed. Skipping Google API call.")
 
         return jsonify({'success': True, 'links': links, 'mock_candidates': candidates_list})
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
 
 

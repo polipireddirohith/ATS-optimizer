@@ -177,6 +177,11 @@
                     body: JSON.stringify({ jd_text: jdText, api_key: apiKey, cx_id: cxId })
                 });
 
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`Server Error (${response.status}): ${errorText.substring(0, 200)}...`);
+                }
+
                 const data = await response.json();
 
                 if (data.success) {
