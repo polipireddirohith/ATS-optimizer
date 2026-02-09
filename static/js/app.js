@@ -1013,8 +1013,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Start Over logic - Reload page for new analysis
+    // Start Over logic - Navigate to home page for new analysis
     window.startOver = function () {
-        location.reload();
+        window.location.href = '/';
     };
 });
