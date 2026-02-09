@@ -1173,7 +1173,8 @@ body {
 /* ==================== Entrance & Feedback Animations ==================== */
 .panel-card {
     animation: slideInUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    opacity: 0;
+    opacity: 1;
+    /* Changed from 0 to ensure visibility if animation fails */
 }
 
 .panel-card:nth-child(1) {
@@ -1676,7 +1677,8 @@ body {
     font-style: italic;
     border-radius: 2px;
     box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.1);
-    z-index: 5;
+    z-index: 1100;
+    /* Increased to stay above app-container (z-index 10) */
     pointer-events: auto;
     cursor: grab;
     transition: transform 0.3s;

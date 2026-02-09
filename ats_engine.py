@@ -55,10 +55,10 @@ class ATSEngine:
             'frontend': ['react', 'angular', 'vue', 'nextjs', 'typescript', 'javascript', 'html', 'css', 'sass', 'tailwind', 'redux', 'webpack'],
             'backend': ['python', 'java', 'node.js', 'go', 'ruby', 'php', 'rust', 'flask', 'django', 'spring', 'express', 'laravel'],
             'database': ['sql', 'nosql', 'mongodb', 'postgresql', 'mysql', 'redis', 'elasticsearch', 'cassandra', 'dynamodb', 'oracle'],
-            'cloud_devops': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'terraform', 'ansible', 'prometheus', 'grafana'],
-            'data_science': ['pandas', 'numpy', 'scipy', 'scikit-learn', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'data mining', 'tableau', 'powerbi'],
+            'cloud_devops': ['aws', 'azure', 'gcp', 'docker', 'kubernetes', 'jenkins', 'git', 'github', 'terraform', 'ansible', 'prometheus', 'grafana', 'ci/cd', 'pipelines'],
+            'data_science': ['pandas', 'numpy', 'scipy', 'scikit-learn', 'tensorflow', 'pytorch', 'nlp', 'computer vision', 'data mining', 'tableau', 'powerbi', 'regression', 'classification', 'time-series', 'forecasting', 'lstm', 'hyperparameter', 'cross-validation', 'feature engineering', 'eda', 'machine learning', 'deep learning', 'artificial intelligence', 'ai', 'ml'],
             'mobile': ['react native', 'flutter', 'swift', 'kotlin', 'objective-c', 'ios', 'android'],
-            'professional': ['agile', 'scrum', 'jira', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork']
+            'professional': ['agile', 'scrum', 'jira', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork', 'collaboration']
         }
         
     def parse_resume(self, resume_text: str) -> Dict:
@@ -199,11 +199,11 @@ class ATSEngine:
         
         # Weighted total
         total_score = (
-            keyword_score * 0.40 +
-            skills_score * 0.25 +
-            experience_score * 0.15 +
+            keyword_score * 0.35 +
+            skills_score * 0.40 +
+            experience_score * 0.10 +
             domain_score * 0.10 +
-            formatting_score * 0.10
+            formatting_score * 0.05
         )
         
         return {
@@ -503,7 +503,8 @@ class ATSEngine:
     def _extract_keywords(self, text: str) -> List[str]:
         """Extract all keywords from resume"""
         # Remove common words
-        words = re.findall(r'\b[a-z]{3,}\b', text.lower())
+        # Remove common words, handling compound terms like scikit-learn or ci/cd
+        words = re.findall(r'\b[a-z]{2,}(?:[-/][a-z]{2,})*\b', text.lower())
         keywords = [w for w in words if w not in self.stop_words]
         
         # Count frequency
@@ -608,7 +609,7 @@ class ATSEngine:
 
     def _extract_experience_requirement(self, jd_text: str) -> str:
         """Extract years of experience required"""
-        exp_pattern = r'(\d+)\+?\s*(?:years?|yrs?)\s*(?:of)?\s*(?:experience)?'
+        exp_pattern = r'(\d+(?:\s?(?:-|to)\s?\d+)?)\+?\s*(?:years?|yrs?)\s*(?:of)?\s*(?:experience)?'
         match = re.search(exp_pattern, jd_text.lower())
         
         return match.group() if match else 'Not specified'
