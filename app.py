@@ -558,27 +558,32 @@ def generate_sourcing():
 
         # Fallback to Mock Candidates if no API or no results
         if not candidates_list:
+            # Generate a safe LinkedIn Search URL for the skills
+            base_search = "https://www.linkedin.com/search/results/people/?keywords="
+            safe_query = urllib.parse.quote(" ".join(unique_keywords[:2]))
+            safe_url = f"{base_search}{safe_query}"
+
             mock_candidates = [
                 {
-                    'name': 'Alex Rivera',
+                    'name': 'Alex Rivera' if 'Developer' in str(unique_keywords) else 'Jordan Lee',
                     'title': f'Senior {unique_keywords[0]}',
                     'match_score': 95,
                     'skills': unique_keywords[:3],
-                    'profile_url': links[0]['url']
+                    'profile_url': safe_url
                 },
                 {
                     'name': 'Sarah Chen',
                     'title': f'{unique_keywords[1] if len(unique_keywords)>1 else "Software"} Engineer',
                     'match_score': 88,
                     'skills': unique_keywords[1:4],
-                    'profile_url': links[0]['url']
+                    'profile_url': safe_url
                 },
                 {
                     'name': 'James Wilson',
                     'title': 'Tech Lead',
                     'match_score': 82,
                     'skills': unique_keywords[:2],
-                    'profile_url': links[0]['url']
+                    'profile_url': safe_url
                 }
             ]
             candidates_list = mock_candidates
