@@ -65,6 +65,32 @@
                         <h3>Target Job Description</h3>
                         <span class="badge">Required</span>
                     </div>
+
+                    <!-- API Config (Collapsible) -->
+                    <details
+                        style="margin-bottom: 1rem; border: 1px solid var(--border-color); border-radius: 8px; padding: 0.5rem;">
+                        <summary
+                            style="cursor: pointer; padding: 0.5rem; font-weight: 500; color: var(--text-secondary);">⚙️
+                            Configure Google Search API (For Real Results)</summary>
+                        <div style="padding: 1rem; display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;">
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; margin-bottom: 0.25rem;">Google API
+                                    Key</label>
+                                <input type="password" id="apiKey" placeholder="AIzaSy..."
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
+                            </div>
+                            <div>
+                                <label style="display: block; font-size: 0.75rem; margin-bottom: 0.25rem;">Search Engine
+                                    ID (CX)</label>
+                                <input type="text" id="cxId" placeholder="012345..."
+                                    style="width: 100%; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 4px;">
+                            </div>
+                            <div style="grid-column: span 2; font-size: 0.75rem; color: var(--text-muted);">
+                                Note: Without keys, we will show optimized search links and simulated profiles.
+                            </div>
+                        </div>
+                    </details>
+
                     <div class="input-group">
                         <textarea id="jdInput"
                             placeholder="Paste the job description here (e.g., Python Developer with 5+ years experience...)"
@@ -127,6 +153,9 @@
     <script>
         document.getElementById('sourceBtn').addEventListener('click', async () => {
             const jdText = document.getElementById('jdInput').value;
+            const apiKey = document.getElementById('apiKey').value || '';
+            const cxId = document.getElementById('cxId').value || '';
+
             if (!jdText) return alert("Please enter a Job Description.");
 
             document.getElementById('loadingIndicator').style.display = 'flex';
@@ -136,7 +165,7 @@
                 const response = await fetch('/api/source/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ jd_text: jdText })
+                    body: JSON.stringify({ jd_text: jdText, api_key: apiKey, cx_id: cxId })
                 });
 
                 const data = await response.json();

@@ -523,32 +523,67 @@ def generate_sourcing():
             url = f"https://www.google.com/search?q={urllib.parse.quote(q)}"
             links.append({'platform': p, 'query': q, 'url': url})
             
-        # Mock Candidates (Simulating Fetch)
-        mock_candidates = [
-            {
-                'name': 'Alex Rivera',
-                'title': f'Senior {unique_keywords[0]}',
-                'match_score': 95,
-                'skills': unique_keywords[:3],
-                'profile_url': links[0]['url']
-            },
-            {
-                'name': 'Sarah Chen',
-                'title': f'{unique_keywords[1] if len(unique_keywords)>1 else "Software"} Engineer',
-                'match_score': 88,
-                'skills': unique_keywords[1:4],
-                'profile_url': links[0]['url']
-            },
-            {
-                'name': 'James Wilson',
-                'title': 'Tech Lead',
-                'match_score': 82,
-                'skills': unique_keywords[:2],
-                'profile_url': links[0]['url']
-            }
-        ]
+        # Real Search via Google API (if keys provided)
+        api_key = data.get('api_key')
+        cx_id = data.get('cx_id')
+        candidates_list = []
         
-        return jsonify({'success': True, 'links': links, 'mock_candidates': mock_candidates})
+        if api_key and cx_id:
+            try:
+                import requests
+                # Targeted Query for LinkedIn Profiles
+                search_query = f'site:linkedin.com/in/ {keyword_str}'
+                url = f"https://www.googleapis.com/customsearch/v1?key={api_key}&cx={cx_id}&q={search_query}"
+                resp = requests.get(url, timeout=5)
+                
+                if resp.status_code == 200:
+                    results = resp.json().get('items', [])
+                    for item in results[:5]:
+                        title = item.get('title', 'Unknown Professional')
+                        # Parse "Name - Role | Company" format common on LinkedIn
+                        parts = title.split(' - ')
+                        name = parts[0].strip()
+                        role = parts[1] if len(parts) > 1 else 'Professional'
+                        if '|' in role: role = role.split('|')[0].strip()
+                        
+                        candidates_list.append({
+                            'name': name,
+                            'title': role,
+                            'match_score': 85 + (len(results) - results.index(item)), # Pseudo score based on rank
+                            'skills': unique_keywords[:3], # Inferred from context
+                            'profile_url': item.get('link')
+                        })
+            except Exception as e:
+                print(f"Google API Error: {str(e)}")
+
+        # Fallback to Mock Candidates if no API or no results
+        if not candidates_list:
+            mock_candidates = [
+                {
+                    'name': 'Alex Rivera',
+                    'title': f'Senior {unique_keywords[0]}',
+                    'match_score': 95,
+                    'skills': unique_keywords[:3],
+                    'profile_url': links[0]['url']
+                },
+                {
+                    'name': 'Sarah Chen',
+                    'title': f'{unique_keywords[1] if len(unique_keywords)>1 else "Software"} Engineer',
+                    'match_score': 88,
+                    'skills': unique_keywords[1:4],
+                    'profile_url': links[0]['url']
+                },
+                {
+                    'name': 'James Wilson',
+                    'title': 'Tech Lead',
+                    'match_score': 82,
+                    'skills': unique_keywords[:2],
+                    'profile_url': links[0]['url']
+                }
+            ]
+            candidates_list = mock_candidates
+        
+        return jsonify({'success': True, 'links': links, 'mock_candidates': candidates_list})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
