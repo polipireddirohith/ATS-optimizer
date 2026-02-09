@@ -924,34 +924,42 @@ class ATSEngine:
         return f"{action_verb.capitalize()} {core_content}, resulting in [quantifiable impact]"
     
     def _suggest_skills_restructure(self, resume_data: Dict, jd_data: Dict) -> Dict:
-        """Suggest skills section restructuring"""
-        resume_skills = set(s.lower() for s in resume_data['skills'])
-        jd_mandatory = set(s.lower() for s in jd_data['mandatory_skills'])
-        jd_preferred = set(s.lower() for s in jd_data['preferred_skills'])
+        """Suggest skills section restructuring with gap filling"""
+        resume_skills = set(s.lower() for s in resume_data.get('skills', []))
+        jd_mandatory = set(s.lower() for s in jd_data.get('mandatory_skills', []))
+        jd_preferred = set(s.lower() for s in jd_data.get('preferred_skills', []))
         
         matched_mandatory = list(resume_skills & jd_mandatory)
+        missing_mandatory = list(jd_mandatory - resume_skills)
+        
         matched_preferred = list(resume_skills & jd_preferred)
+        missing_preferred = list(jd_preferred - resume_skills)
+        
         other_skills = list(resume_skills - jd_mandatory - jd_preferred)
         
         return {
             'structure': 'Categorize skills by relevance',
             'categories': {
-                'Core Technical Skills': matched_mandatory[:10],
-                'Additional Skills': matched_preferred[:8],
-                'Other Competencies': other_skills[:5]
+                'Core Technical Skills (Mandatory)': matched_mandatory + [f"{s}*" for s in missing_mandatory],
+                'Preferred Technical Stack': matched_preferred + [f"{s}*" for s in missing_preferred],
+                'Other Competencies': other_skills[:10]
             },
-            'note': 'Place most relevant skills first for ATS optimization'
+            'note': 'Skills marked with (*) were added based on the Job Description. Please review and only keep those you have experience with.'
         }
     
     def _suggest_summary_optimization(self, resume_data: Dict, jd_data: Dict) -> str:
-        """Suggest optimized professional summary"""
+        """Suggest optimized professional summary targeting the JD"""
         # Extract key elements
-        top_skills = jd_data['mandatory_skills'][:3]
-        experience_req = jd_data['experience_required']
+        top_skills = jd_data.get('mandatory_skills', [])[:4]
+        experience_req = jd_data.get('experience_required', 'relevant')
+        role_type = jd_data.get('role_type', 'professional')
         
-        template = f"""Results-driven professional with expertise in {', '.join(top_skills[:2])} and {top_skills[2] if len(top_skills) > 2 else 'related technologies'}. Proven track record of delivering high-impact solutions and driving business outcomes. Seeking to leverage technical skills and experience to contribute to [Company Name]'s success."""
-        
-        return template
+        # Construct optimized summary
+        if not top_skills:
+            return resume_data.get('summary', '')
+
+        skills_str = ', '.join([s.title() for s in top_skills])
+        return f"Dedicated {role_type.title()} with {experience_req} of experience specializing in {skills_str}. Proven track record of delivering high-impact solutions and optimizing workflows. Seeking to leverage technical expertise in {top_skills[0].title()} to drive results for your engineering team."
     
     def _suggest_title_alignment(self, resume_data: Dict, jd_data: Dict) -> List[str]:
         """Suggest job title alignment"""

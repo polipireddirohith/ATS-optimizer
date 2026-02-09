@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Buttons
     const newAnalysisBtn = document.getElementById('newAnalysisBtn');
+    const resetAnalysisBtn = document.getElementById('resetAnalysisBtn');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const downloadResumeBtn = document.getElementById('downloadResumeBtn');
 
@@ -391,16 +392,45 @@ document.addEventListener('DOMContentLoaded', () => {
         suitabilityRecommendation.textContent = data.suitability.recommendation;
         recruiterInsights.innerHTML = data.suitability.recruiter_insights.map(i => `<div class="insight-item">${i}</div>`).join('');
 
-        // 5. Editor
-        optimizedResume.textContent = data.optimized_resume;
+        // 5. Editor & Comprehensive Improvements
+        optimizedResume.innerText = data.optimized_resume;
         improvementsContainer.innerHTML = '';
-        if (data.improvements && data.improvements.keyword_insertions) {
-            improvementsContainer.innerHTML = data.improvements.keyword_insertions.slice(0, 4).map(i => `
-                <div class="suggestion-card" onclick="this.style.opacity=0.5; this.style.pointerEvents='none';">
-                    <strong>Add ${i.keyword}</strong> ${i.suggestion}
+
+        const allSuggestions = [
+            ...(data.improvements.keyword_insertions || []).map(i => ({ ...i, icon: '➕' })),
+            ...(data.improvements.bullet_point_rewrites || []).map(i => ({ ...i, icon: '✍️', keyword: 'STAR Rewrite' })),
+            ...(data.improvements.formatting_fixes || []).map(i => ({ keyword: 'Formatting', suggestion: i, icon: '🎨' }))
+        ];
+
+        if (allSuggestions.length > 0) {
+            improvementsContainer.innerHTML = allSuggestions.slice(0, 8).map(i => `
+                <div class="suggestion-card" onclick="window.applySuggestion('${i.suggestion.replace(/'/g, "\\'")}'); this.classList.add('applied');">
+                    <span style="font-size:1.2rem; margin-right:0.5rem;">${i.icon}</span>
+                    <div>
+                        <strong>${i.keyword}</strong>
+                        <p>${i.suggestion}</p>
+                    </div>
                 </div>
             `).join('');
         }
+
+        window.applySuggestion = function (text) {
+            // Focus editor and insert at cursor or just append if not focused
+            optimizedResume.focus();
+            const selection = window.getSelection();
+            if (selection.rangeCount > 0) {
+                const range = selection.getRangeAt(0);
+                if (optimizedResume.contains(range.commonAncestorContainer)) {
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(text));
+                    geminiTalk("Applied! Your resume is getting stronger. 💪");
+                    return;
+                }
+            }
+            // Fallback: Append
+            optimizedResume.innerText += "\n\n" + text;
+            geminiTalk("Added to optimized draft! ✏️");
+        };
     }
 
     function addKeywordPill(text, type) {
@@ -537,6 +567,113 @@ document.addEventListener('DOMContentLoaded', () => {
         [uploadSection, resultsSection, loadingSection, document.getElementById('aboutSection')].forEach(s => { if (s) s.style.display = 'none'; });
     }
 
+    // ==================== Navigation & Routing ====================
+
+    function navigate(target) {
+        hideAll();
+
+        // Handle physical section visibility
+        if (target === 'dashboard') {
+            if (window.lastData) {
+                resultsSection.style.display = 'grid';
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                uploadSection.style.display = 'grid';
+            }
+        } else if (target === 'about') {
+            document.getElementById('aboutSection').style.display = 'flex';
+        } else if (target === 'score') {
+            if (!window.lastData) return alert("Analyze a resume first to see your score! 📊");
+            resultsSection.style.display = 'grid';
+            document.getElementById('suitability').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } else if (target === 'optimize') {
+            if (!window.lastData) return alert("Analyze a resume first to unlock the optimization editor! 🚀");
+            resultsSection.style.display = 'grid';
+            document.getElementById('editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // Update active states
+        [...navLinks, ...sidebarItems].forEach(el => {
+            const text = el.textContent.trim().toLowerCase();
+            el.classList.toggle('active', text.includes(target));
+        });
+    }
+
+    [...navLinks, ...sidebarItems].forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const text = link.textContent.trim().toLowerCase();
+            if (text.includes('dashboard')) navigate('dashboard');
+            else if (text.includes('score')) navigate('score');
+            else if (text.includes('optimize')) navigate('optimize');
+            else if (text.includes('about')) navigate('about');
+        });
+    });
+
+    if (newAnalysisBtn) {
+        newAnalysisBtn.onclick = () => {
+            if (resultsSection.style.display !== 'none') {
+                navigate('optimize');
+            } else {
+                location.reload();
+            }
+        };
+    }
+
+    if (resetAnalysisBtn) {
+        resetAnalysisBtn.onclick = () => window.startOver();
+    }
+
+    // ==================== Download Logic ====================
+
+    if (downloadReportBtn) {
+        downloadReportBtn.onclick = async () => {
+            if (!window.lastData) return;
+            try {
+                const response = await fetch('/api/download-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(window.lastData)
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `ATS_Report_${new Date().getTime()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                geminiTalk("Report downloaded! You're ready for the big leagues. 📄⭐");
+            } catch (e) {
+                alert("Download failed. The server might be shy. 🙈");
+            }
+        };
+    }
+
+    if (downloadResumeBtn) {
+        downloadResumeBtn.onclick = async () => {
+            const text = optimizedResume.innerText;
+            try {
+                const response = await fetch('/api/download-resume', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ resume_text: text })
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Optimized_Resume_${new Date().getTime()}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                geminiTalk("Optimized resume exported! Go get 'em, tiger! 🐯🚀");
+            } catch (e) {
+                alert("Export failed. Let's try manual copy-paste? 📋");
+            }
+        };
+    }
+
     // Follow Cursor logic
     document.addEventListener('mousemove', (e) => {
         const glow = document.getElementById('mouseGlow');
@@ -549,13 +686,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Navigation Linking
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const text = link.textContent.trim();
-            if (text === 'Dashboard') { hideAll(); window.lastData ? resultsSection.style.display = 'grid' : uploadSection.style.display = 'grid'; }
-            else if (text === 'About') { hideAll(); document.getElementById('aboutSection').style.display = 'flex'; }
-        });
-    });
+    // Start Over logic - Add a dedicated "New Analysis" button or handle specifically
+    window.startOver = function () {
+        if (confirm("Clear results and start a new analysis?")) {
+            location.reload();
+        }
+    };
 });
