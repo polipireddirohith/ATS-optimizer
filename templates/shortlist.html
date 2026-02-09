@@ -160,13 +160,28 @@
 </head>
 
 <body data-theme="default">
+    <!-- Navigation Bar -->
+    <nav
+        style="background: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; margin-bottom: 2rem;">
+        <div
+            style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">ATS Optimizer</div>
+            <div style="display: flex; gap: 2rem;">
+                <a href="/"
+                    style="text-decoration: none; color: var(--text-primary); font-weight: 500; transition: color 0.3s;">Single
+                    Analysis</a>
+                <a href="/bulk"
+                    style="text-decoration: none; color: var(--text-primary); font-weight: 500; transition: color 0.3s;">📊
+                    Bulk Analysis</a>
+                <a href="/shortlist" style="text-decoration: none; color: var(--accent-purple); font-weight: 600;">⭐
+                    Shortlist</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="shortlist-container">
         <div class="shortlist-header">
             <div>
-                <a href="/"
-                    style="display: inline-block; margin-bottom: 1rem; padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 0.9rem;">
-                    ← Back to Main
-                </a>
                 <h1 style="font-size: 2.5rem; margin: 0;">⭐ Shortlisted Candidates</h1>
                 <p style="color: var(--text-muted); margin-top: 0.5rem;">Manage your top candidates</p>
             </div>

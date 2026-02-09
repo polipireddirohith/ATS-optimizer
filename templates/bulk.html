@@ -208,12 +208,27 @@
 </head>
 
 <body data-theme="default">
+    <!-- Navigation Bar -->
+    <nav
+        style="background: var(--bg-card); border-bottom: 1px solid var(--border-color); padding: 1rem 2rem; margin-bottom: 2rem;">
+        <div
+            style="max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary);">ATS Optimizer</div>
+            <div style="display: flex; gap: 2rem;">
+                <a href="/"
+                    style="text-decoration: none; color: var(--text-primary); font-weight: 500; transition: color 0.3s;">Single
+                    Analysis</a>
+                <a href="/bulk" style="text-decoration: none; color: var(--accent-teal); font-weight: 600;">📊 Bulk
+                    Analysis</a>
+                <a href="/shortlist"
+                    style="text-decoration: none; color: var(--text-primary); font-weight: 500; transition: color 0.3s;">⭐
+                    Shortlist</a>
+            </div>
+        </div>
+    </nav>
+
     <div class="bulk-container">
         <header style="text-align: center; margin-bottom: 3rem; position: relative;">
-            <a href="/"
-                style="position: absolute; left: 0; top: 0; padding: 0.5rem 1rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 8px; text-decoration: none; color: var(--text-primary); font-size: 0.9rem; transition: all 0.3s ease;">
-                ← Back to Main
-            </a>
             <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">📊 Bulk Resume Analysis</h1>
             <p style="color: var(--text-muted); font-size: 1.1rem;">Upload multiple resumes and compare them against a
                 single job description</p>
