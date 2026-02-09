@@ -1099,6 +1099,8 @@ body {
     outline: none;
     font-size: 0.95rem;
     border: 1px solid var(--border-color);
+    white-space: pre-wrap;
+    /* CRITICAL: Preserve formatting from engine */
 }
 
 .suggestion-card {
