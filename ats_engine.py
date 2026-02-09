@@ -277,7 +277,8 @@ class ATSEngine:
             # --- EXTENDED DETAILS FOR HR DASHBOARD ---
             'matched_skills': list(matched),
             'missing_skills': list(mandatory - matched),
-            'experience_summary': self._extract_relevant_experience_snippets(resume_data, jd_data)
+            'experience_summary': self._extract_relevant_experience_snippets(resume_data, jd_data),
+            'work_history': resume_data.get('experience', [])  # Full history for HR
         }
 
     def calculate_ats_score(self, resume_data: Dict, jd_data: Dict) -> Dict:

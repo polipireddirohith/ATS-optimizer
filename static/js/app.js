@@ -454,9 +454,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Experience Evidence
         if (data.suitability.experience_summary && data.suitability.experience_summary.length > 0) {
-            hrHtml += `<div class="hr-section"><h5>Contextual Evidence</h5><ul>`;
+            hrHtml += `<div class="hr-section"><h5>Relevant Evidence Snippets</h5><ul>`;
             data.suitability.experience_summary.forEach(snip => hrHtml += `<li>"${snip}"</li>`);
             hrHtml += `</ul></div>`;
+        }
+
+        // --- NEW: Full Professional History for HR ---
+        if (data.suitability.work_history && data.suitability.work_history.length > 0) {
+            hrHtml += `<div class="hr-section"><h5>Professional History</h5><div class="work-history-list">`;
+            data.suitability.work_history.forEach(job => {
+                hrHtml += `
+                    <div class="work-item-mini" style="margin-bottom:0.75rem; padding-bottom:0.5rem; border-bottom:1px solid var(--border-color);">
+                        <div style="font-weight:700; color:var(--text-primary); font-size:0.85rem;">${job.header}</div>
+                        <ul style="margin:0.25rem 0 0 1rem; font-size:0.75rem; color:var(--text-secondary);">
+                            ${job.bullets.slice(0, 2).map(b => `<li>${b}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            });
+            hrHtml += `</div></div>`;
         }
 
         hrHtml += `</div>`;
