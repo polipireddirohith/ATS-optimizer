@@ -49,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resetAnalysisBtn = document.getElementById('resetAnalysisBtn');
     const downloadReportBtn = document.getElementById('downloadReportBtn');
     const downloadResumeBtn = document.getElementById('downloadResumeBtn');
+    const unlockBtn = document.getElementById('unlockBtn');
+    const shortlistBtn = document.getElementById('shortlistBtn');
+    const addNoteBtn = document.getElementById('addNoteBtn');
 
     // ==================== Gamification Core ====================
 
@@ -314,8 +317,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const controls = document.getElementById('hrControls');
         if (!controls) return;
 
-        const msg = document.getElementById('hrVisibilityMsg');
-        if (!msg) return;
+        const hrMsg = document.getElementById('hrVisibilityMsg');
+        if (!hrMsg) return;
 
         const vis = data.visibility_status || (data.score && data.score.visibility_status);
         if (!vis) return;
@@ -324,12 +327,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Reset state
         if (contactInfoContainer) contactInfoContainer.innerHTML = '';
-        unlockBtn.style.display = 'block';
-        unlockBtn.disabled = true;
+        if (unlockBtn) {
+            unlockBtn.style.display = 'block';
+            unlockBtn.disabled = true;
+        }
 
         if (vis.contact_details_unlocked) {
-            msg.innerHTML = `<span class="vis-visible">✅ Perfect Match</span> Candidate details available.`;
-            unlockBtn.style.display = 'none'; // Hide unlock button since we show it directly
+            hrMsg.innerHTML = `<span class="vis-visible">✅ Perfect Match</span> Candidate details available.`;
+            if (unlockBtn) unlockBtn.style.display = 'none';
 
             // Auto-show Contact Details
             if (contactInfoContainer) {
@@ -355,15 +360,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
         } else if (vis.is_recruiter_visible) {
-            msg.innerHTML = `<span class="vis-limited">⚠ Potential Match</span> Contact details hidden.`;
+            hrMsg.innerHTML = `<span class="vis-limited">⚠ Potential Match</span> Contact details hidden.`;
             if (vis.missing_mandatory && vis.missing_mandatory.length > 0) {
-                msg.innerHTML += `<div style="font-size:0.7rem; color: #c2410c; margin-top:0.25rem;">Missing: ${vis.missing_mandatory.join(', ')}</div>`;
+                hrMsg.innerHTML += `<div style="font-size:0.7rem; color: #c2410c; margin-top:0.25rem;">Missing: ${vis.missing_mandatory.join(', ')}</div>`;
             }
-            unlockBtn.disabled = true;
-            unlockBtn.textContent = "Unlock (Score too low)";
+            if (unlockBtn) {
+                unlockBtn.disabled = true;
+                unlockBtn.textContent = "Unlock (Score too low)";
+            }
         } else {
-            msg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
-            unlockBtn.disabled = true;
+            hrMsg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
+            if (unlockBtn) unlockBtn.disabled = true;
         }
     }
 
@@ -590,13 +597,8 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Bind HR Buttons
-    const unlockBtn = document.getElementById('unlockBtn');
     if (unlockBtn) unlockBtn.onclick = window.unlockContactDetails;
-
-    const shortlistBtn = document.getElementById('shortlistBtn');
     if (shortlistBtn) shortlistBtn.onclick = window.shortlistCandidate;
-
-    const addNoteBtn = document.getElementById('addNoteBtn');
     if (addNoteBtn) addNoteBtn.onclick = window.addInternalNote;
 
     // ==================== UI Effects ====================
