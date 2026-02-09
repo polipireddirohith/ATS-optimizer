@@ -60,6 +60,25 @@ class ATSEngine:
             'mobile': ['react native', 'flutter', 'swift', 'kotlin', 'objective-c', 'ios', 'android'],
             'professional': ['agile', 'scrum', 'jira', 'project management', 'leadership', 'communication', 'problem solving', 'teamwork', 'collaboration']
         }
+
+        self.synonym_map = {
+            'ml': 'machine learning',
+            'ai': 'artificial intelligence',
+            'sklearn': 'scikit-learn',
+            'js': 'javascript',
+            'ts': 'typescript',
+            'reactjs': 'react',
+            'nodejs': 'node.js',
+            'nlp': 'natural language processing',
+            'cv': 'computer vision',
+            'aws': 'amazon web services',
+            'gcp': 'google cloud platform',
+            'azure': 'microsoft azure',
+            'rest': 'restful',
+            'git': 'github',
+            'eda': 'exploratory data analysis',
+            'api': 'application programming interface'
+        }
         
     def parse_resume(self, resume_text: str) -> Dict:
         """
@@ -510,8 +529,8 @@ class ATSEngine:
         # Count frequency
         keyword_freq = Counter(keywords)
         
-        # Return top keywords
-        return [k for k, v in keyword_freq.most_common(100)]
+        # Return all unique keywords found
+        return list(keyword_freq.keys())
     
     def _detect_formatting_issues(self, text: str) -> List[str]:
         """Detect ATS-unfriendly formatting"""
@@ -680,17 +699,26 @@ class ATSEngine:
         score = (current_score / max_score) * 100
         return min(score, 100.0)
 
+    def _normalize_skill(self, skill: str) -> str:
+        """Normalize skill names using synonym map"""
+        s = skill.lower().strip()
+        return self.synonym_map.get(s, s)
+
     def _calculate_skills_match(self, resume_data: Dict, jd_data: Dict) -> float:
-        """Calculate skills match score with higher precision"""
-        resume_skills = set(s.lower() for s in resume_data['skills'])
+        """Calculate skills match score with higher precision and synonym support"""
+        resume_skills = set(self._normalize_skill(s) for s in resume_data['skills'])
         
-        mandatory_skills = set(s.lower() for s in jd_data['mandatory_skills'])
-        preferred_skills = set(s.lower() for s in jd_data['preferred_skills'])
+        mandatory_skills = set(self._normalize_skill(s) for s in jd_data['mandatory_skills'])
+        preferred_skills = set(self._normalize_skill(s) for s in jd_data['preferred_skills'])
         
         # Mandatory skills (Critical)
         if mandatory_skills:
             mandatory_matched = resume_skills & mandatory_skills
-            mandatory_score = (len(mandatory_matched) / len(mandatory_skills)) * 100
+            # Non-linear scoring: matching most is very good
+            ratio = len(mandatory_matched) / len(mandatory_skills)
+            if ratio >= 0.8: mandatory_score = 100
+            elif ratio >= 0.5: mandatory_score = 85
+            else: mandatory_score = ratio * 100
         else:
             mandatory_score = 100.0
             
@@ -702,9 +730,7 @@ class ATSEngine:
             preferred_score = 100.0
             
         # Weighted average: 80% mandatory, 20% preferred
-        total_score = (mandatory_score * 0.8) + (preferred_score * 0.2)
-        
-        return min(total_score, 100.0)
+        return min((mandatory_score * 0.8) + (preferred_score * 0.2), 100.0)
 
     def _calculate_experience_alignment(self, resume_data: Dict, jd_data: Dict) -> float:
         """Calculate experience alignment based on duration and context"""
