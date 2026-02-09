@@ -124,6 +124,139 @@ body {
     z-index: -1;
 }
 
+/* ==================== Moving Background Objects ==================== */
+.blob {
+    position: fixed;
+    width: 500px;
+    height: 500px;
+    filter: blur(100px);
+    opacity: 0.15;
+    z-index: -1;
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.blob-1 {
+    background: var(--accent-color);
+    top: -10%;
+    left: -5%;
+    animation: blobMorph 15s infinite alternate ease-in-out;
+}
+
+.blob-2 {
+    background: var(--accent-teal);
+    bottom: -10%;
+    right: -5%;
+    animation: blobMorph 20s infinite alternate-reverse ease-in-out;
+    opacity: 0.1;
+}
+
+.blob-3 {
+    background: #6366f1;
+    top: 40%;
+    right: 15%;
+    width: 300px;
+    height: 300px;
+    animation: blobMorph 12s infinite alternate ease-in-out;
+    opacity: 0.05;
+}
+
+@keyframes blobMorph {
+    0% {
+        transform: scale(1) translate(0, 0);
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    }
+
+    50% {
+        transform: scale(1.2) translate(5%, 5%);
+        border-radius: 60% 40% 30% 70% / 50% 60% 40% 60%;
+    }
+
+    100% {
+        transform: scale(0.9) translate(-5%, 2%);
+        border-radius: 40% 60% 70% 30% / 40% 50% 60% 50%;
+    }
+}
+
+.floating-objects {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+
+.float-item {
+    position: absolute;
+    font-size: 2rem;
+    opacity: 0.1;
+    filter: blur(1px);
+    animation: floatDrift 20s infinite linear;
+}
+
+.doc-1 {
+    top: 15%;
+    left: 10%;
+    animation-duration: 25s;
+}
+
+.doc-2 {
+    top: 60%;
+    left: 5%;
+    animation-duration: 30s;
+    animation-delay: -5s;
+}
+
+.doc-3 {
+    top: 25%;
+    right: 10%;
+    animation-duration: 22s;
+    animation-delay: -2s;
+}
+
+.doc-4 {
+    top: 75%;
+    right: 8%;
+    animation-duration: 28s;
+    animation-delay: -10s;
+}
+
+@keyframes floatDrift {
+    0% {
+        transform: translateY(0) rotate(0deg);
+    }
+
+    50% {
+        transform: translateY(-40px) rotate(180deg);
+        opacity: 0.15;
+    }
+
+    100% {
+        transform: translateY(0) rotate(360deg);
+    }
+}
+
+.particles {
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image: radial-gradient(circle, var(--text-muted) 1px, transparent 1px);
+    background-size: 100px 100px;
+    opacity: 0.05;
+    animation: particlePulse 4s infinite alternate ease-in-out;
+}
+
+@keyframes particlePulse {
+    from {
+        opacity: 0.03;
+        transform: scale(1);
+    }
+
+    to {
+        opacity: 0.08;
+        transform: scale(1.05);
+    }
+}
+
 /* ==================== Top Navbar ==================== */
 .top-navbar {
     height: var(--navbar-height);

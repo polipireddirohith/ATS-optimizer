@@ -56,6 +56,40 @@ document.addEventListener('DOMContentLoaded', () => {
         document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
     }
 
+    // Particle Generation
+    function createNodes() {
+        const container = document.getElementById('particles');
+        if (!container) return;
+
+        for (let i = 0; i < 20; i++) {
+            const node = document.createElement('div');
+            Object.assign(node.style, {
+                position: 'absolute',
+                width: '3px',
+                height: '3px',
+                background: 'var(--accent-teal)',
+                borderRadius: '50%',
+                top: Math.random() * 100 + '%',
+                left: Math.random() * 100 + '%',
+                opacity: '0.1',
+                pointerEvents: 'none',
+                boxShadow: '0 0 10px var(--accent-teal)'
+            });
+            container.appendChild(node);
+
+            node.animate([
+                { transform: 'translate(0, 0)', opacity: 0.1 },
+                { transform: `translate(${Math.random() * 100 - 50}px, ${Math.random() * 100 - 50}px)`, opacity: 0.3 }
+            ], {
+                duration: 5000 + Math.random() * 5000,
+                iterations: Infinity,
+                direction: 'alternate',
+                easing: 'ease-in-out'
+            });
+        }
+    }
+    createNodes();
+
     // ==================== Workspace Logic ====================
 
     // Trigger file input
