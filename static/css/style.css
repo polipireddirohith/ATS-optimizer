@@ -270,7 +270,8 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    z-index: 9990;
+    /* High enough to be above sticky notes (2500) but below modals (9999) */
 }
 
 .nav-container {
@@ -346,6 +347,20 @@ body {
     border-radius: 2px;
 }
 
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+@media (max-width: 1100px) {
+    .nav-links {
+        display: none !important;
+    }
+}
+
 .app-container {
     display: flex;
     flex: 1;
@@ -355,11 +370,6 @@ body {
     /* Elevated to stay above background visuals */
 }
 
-.nav-actions {
-    display: flex;
-    align-items: center;
-    flex-shrink: 0;
-}
 
 /* ==================== Sidebar ==================== */
 .sidebar {
@@ -701,13 +711,14 @@ body {
 /* ==================== Results Layout ==================== */
 .results-layout {
     display: grid;
-    grid-template-columns: 320px 1fr;
+    grid-template-columns: 340px 1fr;
     gap: 2rem;
     max-width: 1600px;
+    margin: 0 auto;
     animation: slideUp 0.5s ease-out;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1250px) {
     .results-layout {
         grid-template-columns: 1fr;
     }
@@ -715,6 +726,7 @@ body {
     .analysis-summary {
         position: relative !important;
         top: 0 !important;
+        width: 100%;
     }
 }
 
@@ -732,7 +744,7 @@ body {
 
 .analysis-summary {
     position: sticky;
-    top: 2rem;
+    top: calc(var(--navbar-height) + 2rem);
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -855,6 +867,8 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     font-size: 0.8rem;
     margin-bottom: 1rem;
     color: var(--text-secondary);
@@ -1048,7 +1062,30 @@ body {
 .editor-interface {
     display: grid;
     grid-template-columns: 1fr 320px;
-    gap: 2.5rem;
+    gap: 2rem;
+}
+
+@media (max-width: 1450px) {
+    .editor-interface {
+        grid-template-columns: 1fr;
+    }
+
+    .suggestions-rail {
+        order: -1;
+        /* Move suggestions above the editor */
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .suggestions-rail h4 {
+        width: 100%;
+    }
+
+    .suggestion-card {
+        flex: 1;
+        min-width: 250px;
+    }
 }
 
 .inline-editor {
@@ -1106,36 +1143,43 @@ body {
     padding: 3px;
     border-radius: 8px;
     border: 1px solid var(--border-color);
-    margin-right: 1rem;
+    margin-right: 0.5rem;
     gap: 2px;
 }
 
+.btn-secondary-full.active,
+.btn-primary-full.active {
+    border-color: var(--accent-teal) !important;
+    background: rgba(20, 184, 166, 0.05);
+    box-shadow: 0 0 10px rgba(20, 184, 166, 0.1);
+}
+
 .role-btn {
-    padding: 0.35rem 0.75rem;
+    padding: 0.4rem 0.8rem;
     font-size: 0.75rem;
-    font-weight: 500;
+    font-weight: 600;
     border: none;
     background: transparent;
     color: var(--text-muted);
     border-radius: 6px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
 }
 
 .role-btn:hover {
     color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
 }
 
 .role-btn.active {
     background: var(--bg-card);
     color: var(--accent-color);
-    font-weight: 700;
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 [data-role="hr"].active {
     color: var(--accent-teal);
-    /* Different color for HR mode confirmation */
 }
 
 /* Visibility Control Classes */
@@ -1151,10 +1195,12 @@ body.role-hr .candidate-only {
 .hr-controls {
     display: none;
     flex-direction: column !important;
-    gap: 1rem;
+    gap: 1.25rem;
     margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid var(--border-color);
+    padding: 1.5rem;
+    background: rgba(20, 184, 166, 0.03);
+    border-radius: 12px;
+    border: 1px dashed var(--accent-teal);
 }
 
 body.role-hr .hr-controls {
@@ -1535,8 +1581,8 @@ body.role-hr .ai-companion {
 /* ==================== Gemini AI Companion & Whimsical Effects ==================== */
 .ai-companion {
     position: fixed;
-    bottom: 3rem;
-    left: 2rem;
+    bottom: 2rem;
+    left: calc(var(--sidebar-width) + 2rem);
     z-index: 2000;
     display: flex;
     flex-direction: column;

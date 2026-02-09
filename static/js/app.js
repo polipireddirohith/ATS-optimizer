@@ -313,18 +313,24 @@ document.addEventListener('DOMContentLoaded', () => {
         const controls = document.getElementById('hrControls');
         if (!controls) return;
 
-        const { visibility_status } = data;
-        const msg = document.getElementById('hrVisibilityMsg');
+        const vis = data.visibility_status || (data.score && data.score.visibility_status);
+        if (!vis) return;
 
-        if (visibility_status.is_recruiter_visible) {
+        const msg = document.getElementById('hrVisibilityMsg');
+        const unlockBtn = document.getElementById('unlockBtn');
+
+        if (vis.contact_details_unlocked) {
             msg.innerHTML = `<span class="vis-visible">✅ Recruiter Ready</span> Contact details unlocked.`;
-            document.getElementById('unlockBtn').disabled = false;
-        } else if (visibility_status.is_limited_visibility) {
+            unlockBtn.disabled = false;
+        } else if (vis.is_recruiter_visible) {
             msg.innerHTML = `<span class="vis-limited">⚠ Potential Match</span> Contact details hidden.`;
-            document.getElementById('unlockBtn').disabled = true;
+            if (vis.missing_mandatory && vis.missing_mandatory.length > 0) {
+                msg.innerHTML += `<div style="font-size:0.7rem; color: #c2410c; margin-top:0.25rem;">Missing: ${vis.missing_mandatory.join(', ')}</div>`;
+            }
+            unlockBtn.disabled = true;
         } else {
             msg.innerHTML = `<span class="vis-hidden">❌ Hidden</span> Score too low for visibility.`;
-            document.getElementById('unlockBtn').disabled = true;
+            unlockBtn.disabled = true;
         }
     }
 
@@ -441,15 +447,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p><strong>Email:</strong> ${contact.email || 'Not found'}</p>
                 <p><strong>Phone:</strong> ${contact.phone || 'Not found'}</p>
                 <p><strong>Location:</strong> ${contact.location || 'Not found'}</p>
-                <div style="margin-top:1rem; font-size:0.8rem; color:green;">
+                <div style="margin-top:1rem; font-size:0.8rem; color:var(--accent-teal);">
                     Verified by ATS • High Match Score
                 </div>
-                <button onclick="document.body.removeChild(this.parentElement.parentElement)" 
-                        style="margin-top:1rem; width:100%; padding:0.5rem; background:#eee; border:none; border-radius:4px; cursor:pointer;">
+                <button onclick="this.closest('.contact-card-unlocked').nextElementSibling.remove(); this.closest('.contact-card-unlocked').remove()" 
+                        style="margin-top:1.5rem; width:100%; padding:0.75rem; background:var(--bg-app); border:1px solid var(--border-color); border-radius:8px; cursor:pointer; font-weight:600; color:var(--text-primary);">
                     Close
                 </button>
             </div>
-            <div class="modal-backdrop" onclick="this.remove(); document.querySelector('.contact-card-unlocked').remove()"></div>
+            <div class="modal-backdrop" onclick="this.nextElementSibling.remove(); this.remove()"></div>
         `;
 
         const div = document.createElement('div');
@@ -457,15 +463,49 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.appendChild(div);
 
         // Disable button after unlock
-        document.getElementById('unlockBtn').textContent = "Details Unlocked ✅";
-        document.getElementById('unlockBtn').disabled = true;
+        const unlockBtn = document.getElementById('unlockBtn');
+        unlockBtn.textContent = "Details Unlocked ✅";
+        unlockBtn.classList.add('btn-success');
+        unlockBtn.disabled = true;
     };
 
-    // Bind Unlock Button
+    window.shortlistCandidate = function () {
+        const btn = document.getElementById('shortlistBtn');
+        const isShortlisted = btn.classList.contains('active');
+
+        if (isShortlisted) {
+            btn.classList.remove('active');
+            btn.textContent = "Shortlist Candidate";
+            btn.style.borderColor = "";
+            geminiTalk("Candidate removed from shortlist. ❌");
+        } else {
+            btn.classList.add('active');
+            btn.textContent = "Shortlisted ⭐";
+            btn.style.borderColor = "var(--accent-teal)";
+            triggerConfetti();
+            geminiTalk("Excellent choice! Candidate added to shortlist. ⭐");
+        }
+    };
+
+    window.addInternalNote = function () {
+        const note = prompt("Enter recruiter note for this candidate:");
+        if (note) {
+            const btn = document.getElementById('addNoteBtn');
+            btn.textContent = "Note Added 📝";
+            btn.title = note;
+            geminiTalk("Note saved to candidate profile. 📝");
+        }
+    };
+
+    // Bind HR Buttons
     const unlockBtn = document.getElementById('unlockBtn');
-    if (unlockBtn) {
-        unlockBtn.addEventListener('click', window.unlockContactDetails);
-    }
+    if (unlockBtn) unlockBtn.onclick = window.unlockContactDetails;
+
+    const shortlistBtn = document.getElementById('shortlistBtn');
+    if (shortlistBtn) shortlistBtn.onclick = window.shortlistCandidate;
+
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    if (addNoteBtn) addNoteBtn.onclick = window.addInternalNote;
 
     // ==================== UI Effects ====================
 
