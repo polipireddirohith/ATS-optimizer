@@ -205,6 +205,23 @@
 
         function renderMockCandidates(candidates) {
             const tbody = document.getElementById('mockCandidatesBody');
+
+            if (!candidates || candidates.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                            <div style="font-size: 2rem; margin-bottom: 0.5rem;">🔍</div>
+                            <strong>No Auto-Extracted Profiles</strong>
+                            <p style="font-size: 0.85rem; margin-top: 0.5rem;">
+                                Use the <a href="#" onclick="document.querySelector('.gcse-search').scrollIntoView({behavior: 'smooth'})" style="color: var(--accent-teal);">Search Box above</a> to verify candidates manually.<br>
+                                To populate this table automatically, please configure your Google API Key.
+                            </p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             tbody.innerHTML = candidates.map(c => `
                 <tr style="border-bottom: 1px solid var(--border-color);">
                     <td style="padding: 1rem;">
