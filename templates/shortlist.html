@@ -209,6 +209,16 @@
             </div>
         </div>
 
+        <div style="margin-bottom: 1rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="color: var(--text-muted); font-size: 0.9rem;">👤 Filter by Recruiter:</span>
+                <select id="recruiterFilter"
+                    style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); min-width: 150px;">
+                    <option value="all">All Recruiters</option>
+                </select>
+            </div>
+        </div>
+
         <div class="candidate-table" id="candidateTable">
             <table>
                 <thead>
@@ -257,6 +267,7 @@
                     currentShortlist = data.candidates; // Store for export
                     displayCandidates(data.candidates);
                     updateStatistics(data.candidates);
+                    populateRecruiterFilter(data.candidates);
                 } else {
                     showEmptyState();
                 }
@@ -556,6 +567,40 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function populateRecruiterFilter(candidates) {
+            const filter = document.getElementById('recruiterFilter');
+            // Get unique recruiters
+            const recruiters = [...new Set(candidates.map(c => c.recruiter_name || 'Unknown Recruiter'))].sort();
+
+            // Save current selection if re-populating
+            const currentVal = filter.value;
+
+            filter.innerHTML = '<option value="all">All Recruiters</option>';
+            recruiters.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                if (r === currentVal) opt.selected = true;
+                filter.appendChild(opt);
+            });
+
+            // Remove old listener to avoid duplicates? 
+            // Better to clone or just assign onclick. 
+            // Since populate is called once on load usually, addEventListener is safe if we don't reload often.
+            // But usually safe to just overwrite onchange
+            filter.onchange = () => {
+                const val = filter.value;
+                if (val === 'all') {
+                    displayCandidates(currentShortlist);
+                    updateStatistics(currentShortlist);
+                } else {
+                    const filtered = currentShortlist.filter(c => (c.recruiter_name || 'Unknown Recruiter') === val);
+                    displayCandidates(filtered);
+                    updateStatistics(filtered);
+                }
+            };
         }
 
         // Load shortlist on page load
