@@ -199,6 +199,25 @@
             margin: 0 auto 1rem;
         }
 
+        .skill-tag {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .skill-tag.match {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+
+        .skill-tag.missing {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -274,6 +293,11 @@
     </div>
 
     <script>
+        {% if current_user %}
+        window.ATS_USER = "{{ current_user }}";
+        localStorage.setItem('ats_recruiter_name', "{{ current_user }}");
+        {% endif %}
+
         const dropZone = document.getElementById('dropZone');
         const resumeFiles = document.getElementById('resumeFiles');
         const fileList = document.getElementById('fileList');
@@ -395,11 +419,36 @@
                             <div style="font-size: 0.8rem; color: var(--text-muted);">ATS Score</div>
                         </div>
                     </div>
-                    <div class="comparison-summary">
+                    
+                    <div class="comparison-details" style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); display: grid; gap: 1rem; grid-template-columns: 1fr 1fr;">
+                        <!-- Matched Skills -->
+                        <div>
+                             <h4 style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">✅ Matched Skills</h4>
+                             <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                                 ${candidate.matched_skills && candidate.matched_skills.length ? candidate.matched_skills.slice(0, 10).map(s => `<span class="skill-tag match">${s}</span>`).join('') : '<span style="color:var(--text-muted); font-size:0.8rem;">None</span>'}
+                                 ${candidate.matched_skills && candidate.matched_skills.length > 10 ? `<span class="skill-tag match">+${candidate.matched_skills.length - 10}</span>` : ''}
+                             </div>
+                        </div>
+
+                        <!-- Missing Skills -->
+                        <div>
+                             <h4 style="font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.5rem;">❌ Missing / Critical</h4>
+                             <div style="display: flex; flex-wrap: wrap; gap: 0.3rem;">
+                                 ${candidate.missing_skills && candidate.missing_skills.length ? candidate.missing_skills.slice(0, 10).map(s => `<span class="skill-tag missing">${s}</span>`).join('') : '<span style="color:var(--text-muted); font-size:0.8rem;">None</span>'}
+                             </div>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1rem; background: var(--bg-alt); padding: 0.8rem; border-radius: 6px; font-size: 0.9rem;">
+                        <strong style="color: var(--accent-purple);">💡 Recruiter Insight:</strong>
+                        <p style="margin-top: 0.3rem; line-height: 1.4;">${candidate.recommendation}</p>
+                    </div>
+
+                    <div class="comparison-summary" style="margin-top: 1rem;">
                         <div class="summary-item">
-                            <div class="label">Skills Match</div>
-                            <div class="value" style="color: ${candidate.matched_skills.length > 0 ? 'var(--accent-teal)' : '#ef4444'};">
-                                ${candidate.matched_skills.length}/${candidate.matched_skills.length + candidate.missing_skills.length}
+                            <div class="label">Experience Relevance</div>
+                            <div class="value" style="font-size: 1rem;">
+                                ${candidate.experience_summary ? 'High' : (candidate.total_score > 70 ? 'Moderate' : 'Low')}
                             </div>
                         </div>
                         <div class="summary-item">
@@ -409,18 +458,17 @@
                             </div>
                         </div>
                         <div class="summary-item">
-                            <div class="label">Certifications</div>
-                            <div class="value" style="color: ${candidate.matched_certifications.length > 0 ? 'var(--accent-teal)' : '#6b7280'};">
-                                ${candidate.matched_certifications.length}/${candidate.matched_certifications.length + candidate.missing_certifications.length}
-                            </div>
-                        </div>
-                        <div class="summary-item">
                             <div class="label">File</div>
                             <div class="value" style="font-size: 0.8rem; color: var(--text-muted);">
                                 ${candidate.filename}
                             </div>
                         </div>
                     </div>
+
+                    <!-- Shortlist Button -->
+                     <button class="btn-primary-sm" style="width: 100%; margin-top: 1rem;" onclick="window.shortlistCandidate && window.shortlistCandidate(${JSON.stringify(candidate).replace(/"/g, '&quot;')})">
+                        ⭐ Add to Shortlist
+                    </button>
                 `;
                 resultsGrid.appendChild(card);
             });
@@ -428,6 +476,44 @@
             resultsSection.style.display = 'block';
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         }
+
+        // Shortlist Logic for Bulk Page
+        async function shortlistCandidate(candidate) {
+            let recruiterName;
+            if (window.ATS_USER) {
+                recruiterName = window.ATS_USER;
+                localStorage.setItem('ats_recruiter_name', recruiterName);
+            } else {
+                let storedName = localStorage.getItem('ats_recruiter_name') || '';
+                let inputName = prompt("Shortlisting Candidate. Confirm Recuiter Name:", storedName);
+                if (inputName) {
+                    recruiterName = inputName;
+                    localStorage.setItem('ats_recruiter_name', recruiterName);
+                } else {
+                    if (inputName === null) return;
+                    recruiterName = storedName || 'Anonymous Recruiter';
+                }
+            }
+
+            const payload = { ...candidate, recruiter_name: recruiterName };
+
+            try {
+                const response = await fetch('/api/shortlist/add', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert(`✅ ${candidate.candidate_name} added to shortlist!`);
+                } else {
+                    alert('⚠️ ' + result.message);
+                }
+            } catch (e) {
+                alert('Error shortlisting: ' + e.message);
+            }
+        }
+        window.shortlistCandidate = shortlistCandidate;
     </script>
 </body>
 
