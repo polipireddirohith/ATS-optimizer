@@ -538,7 +538,7 @@ def generate_sourcing():
             ('LinkedIn (Active Seekers)', f'site:linkedin.com/in/ {keyword_str} ("Open to work" OR "Looking for" OR "Seeking" OR "Immediate")'),
             ('GitHub', f'site:github.com {keyword_str}'),
             ('Indeed Resumes', f'(site:indeed.com/r/ OR site:indeed.co.in/r/) {keyword_str} (intitle:resume OR intitle:cv) -jobs'),
-            ('Naukri Profiles', f'site:naukri.com {keyword_str} (intitle:resume OR intitle:cv) -jobs -vacancies'),
+            ('Naukri Profiles', f'site:naukri.com {keyword_str} ("Resume" OR "CV") -jobs -vacancies -intitle:jobs -intitle:vacancy'),
             ('StackOverflow', f'site:stackoverflow.com/users {keyword_str}')
         ]
         
