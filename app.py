@@ -564,20 +564,29 @@ def generate_sourcing():
                     
                     if resp.status_code == 200:
                         results = resp.json().get('items', [])
-                        for item in results[:5]:
+                        for item in results[:10]: # Check more items since we filter
+                            link = item.get('link', '')
+                            if not link or 'linkedin.com/feed' in link or 'linkedin.com/login' in link or 'linkedin.com/pub' in link or 'linkedin.com/jobs' in link:
+                                continue
+
                             title = item.get('title', 'Unknown Professional')
+                            # Clean title: "Name - Role - Company | LinkedIn"
                             parts = title.split(' - ')
                             name = parts[0].strip()
                             role = parts[1] if len(parts) > 1 else 'Professional'
-                            if '|' in role: role = role.split('|')[0].strip()
+                            
+                            # Further clean role
+                            role = role.split('|')[0].replace('LinkedIn', '').strip()
+                            if len(role) > 50: role = role[:50] + '...'
                             
                             candidates_list.append({
                                 'name': name,
                                 'title': role,
-                                'match_score': 85 + (len(results) - results.index(item)),
+                                'match_score': 85 + (5 - len(candidates_list)), # Simple ranking
                                 'skills': unique_keywords[:3],
-                                'profile_url': item.get('link')
+                                'profile_url': link
                             })
+                            if len(candidates_list) >= 5: break
                     else:
                         print(f"Google API Error: {resp.status_code} - {resp.text}")
                 except Exception as e:
