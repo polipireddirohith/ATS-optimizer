@@ -15,6 +15,9 @@ class ShortlistManager:
     
     def __init__(self, storage_file=None):
         """Initialize shortlist manager with absolute path"""
+        import threading
+        self.lock = threading.Lock()
+        
         if storage_file:
             self.storage_file = storage_file
         else:
@@ -28,14 +31,7 @@ class ShortlistManager:
         """Create storage file if it doesn't exist"""
         os.makedirs(os.path.dirname(self.storage_file), exist_ok=True)
         if not os.path.exists(self.storage_file):
-            with open(self.storage_file, 'w') as f:
-                json.dump([], f)
-        # Verify file is valid JSON
-        try:
-            with open(self.storage_file, 'r') as f:
-                json.load(f)
-        except:
-             with open(self.storage_file, 'w') as f:
+            with open(self.storage_file, 'w', encoding='utf-8') as f:
                 json.dump([], f)
     
     def add_candidate(self, candidate_data: Dict) -> Dict:
@@ -48,36 +44,64 @@ class ShortlistManager:
         Returns:
             Updated candidate data with shortlist info
         """
-        shortlist = self._load_shortlist()
-        
-        # Create shortlist entry
-        entry = {
-            'id': f"SL-{datetime.now().strftime('%Y%m%d%H%M%S')}",
-            'shortlisted_at': datetime.now().isoformat(),
-            'candidate_name': candidate_data.get('candidate_name', 'Unknown'),
-            'email': candidate_data.get('email', ''),
-            'phone': candidate_data.get('phone', ''),
-            'total_score': candidate_data.get('total_score', 0),
-            'verdict': "Recruiter Selected ✅" if any(x in candidate_data.get('verdict', '') for x in ['Not Visible', 'Low Match', 'Rejected']) else candidate_data.get('verdict', ''),
-            'matched_skills': candidate_data.get('matched_skills', []),
-            'missing_skills': candidate_data.get('missing_skills', []),
-            'education_match': candidate_data.get('education_match', False),
-            'matched_certifications': candidate_data.get('matched_certifications', []),
-            'job_title': candidate_data.get('job_title', 'Not specified'),
-            'notes': candidate_data.get('notes', ''),
-            'status': 'shortlisted',
-            'recruiter_name': candidate_data.get('recruiter_name', 'Unknown')
-        }
-        
-        # Check if already shortlisted
-        existing = next((c for c in shortlist if c['email'] == entry['email']), None)
-        if existing:
-            return {'success': False, 'message': 'Candidate already shortlisted', 'entry': existing}
-        
-        shortlist.append(entry)
-        self._save_shortlist(shortlist)
-        
-        return {'success': True, 'message': 'Candidate shortlisted successfully', 'entry': entry}
+        with self.lock:
+            shortlist = self._load_shortlist()
+            
+            # Create shortlist entry
+            entry = {
+                'id': f"SL-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+                'shortlisted_at': datetime.now().isoformat(),
+                'candidate_name': candidate_data.get('candidate_name', 'Unknown'),
+                'email': candidate_data.get('email', 'N/A'),
+                'phone': candidate_data.get('phone', 'N/A'),
+                'total_score': candidate_data.get('total_score', 0),
+                'verdict': "Recruiter Selected ✅" if any(x in candidate_data.get('verdict', '') for x in ['Not Visible', 'Low Match', 'Rejected']) else candidate_data.get('verdict', ''),
+                'matched_skills': candidate_data.get('matched_skills', []),
+                'missing_skills': candidate_data.get('missing_skills', []),
+                'education_match': candidate_data.get('education_match', False),
+                'matched_certifications': candidate_data.get('matched_certifications', []),
+                'job_title': candidate_data.get('job_title', 'Not specified'),
+                'notes': candidate_data.get('notes', []),
+                'status': 'shortlisted',
+                'recruiter_name': candidate_data.get('recruiter_name', 'Unknown')
+            }
+            
+            # Check if already shortlisted (Robust Duplicate Check)
+            is_dup = False
+            existing_entry = None
+            
+            for c in shortlist:
+                # Check Email (if valid)
+                if c.get('email') and c.get('email') != 'N/A' and entry.get('email') and entry.get('email') != 'N/A':
+                    if c['email'] == entry['email']:
+                        is_dup = True
+                        existing_entry = c
+                        break
+                
+                # Check Phone (if valid)
+                if c.get('phone') and c.get('phone') != 'N/A' and entry.get('phone') and entry.get('phone') != 'N/A':
+                    # Normalize phone (remove spaces/dashes) for comparison
+                    p1 = ''.join(filter(str.isdigit, str(c['phone'])))
+                    p2 = ''.join(filter(str.isdigit, str(entry['phone'])))
+                    if p1 and p2 and p1 == p2:
+                        is_dup = True
+                        existing_entry = c
+                        break
+                        
+                # Check Name + Score (Last resort if no contact info)
+                if (not c.get('email') or c.get('email') == 'N/A') and (not entry.get('email') or entry.get('email') == 'N/A'):
+                     if c['candidate_name'] == entry['candidate_name'] and abs(c.get('total_score', 0) - entry.get('total_score', 0)) < 1:
+                        is_dup = True
+                        existing_entry = c
+                        break
+
+            if is_dup:
+                return {'success': False, 'message': 'Candidate already shortlisted', 'entry': existing_entry}
+            
+            shortlist.append(entry)
+            self._save_shortlist(shortlist)
+            
+            return {'success': True, 'message': 'Candidate shortlisted successfully', 'entry': entry}
     
     def remove_candidate(self, candidate_email: str) -> Dict:
         """
@@ -89,26 +113,30 @@ class ShortlistManager:
         Returns:
             Success status
         """
-        shortlist = self._load_shortlist()
-        original_length = len(shortlist)
-        
-        shortlist = [c for c in shortlist if c['email'] != candidate_email]
-        
-        if len(shortlist) == original_length:
-            return {'success': False, 'message': 'Candidate not found in shortlist'}
-        
-        self._save_shortlist(shortlist)
-        return {'success': True, 'message': 'Candidate removed from shortlist'}
+        with self.lock:
+            shortlist = self._load_shortlist()
+            original_length = len(shortlist)
+            
+            shortlist = [c for c in shortlist if c['email'] != candidate_email]
+            
+            if len(shortlist) == original_length:
+                return {'success': False, 'message': 'Candidate not found in shortlist'}
+            
+            self._save_shortlist(shortlist)
+            return {'success': True, 'message': 'Candidate removed from shortlist'}
     
     def get_all_shortlisted(self) -> List[Dict]:
         """Get all shortlisted candidates"""
-        return self._load_shortlist()
+        # Read operations don't strictly need lock if atomic, but good practice for consistency
+        with self.lock:
+             return self._load_shortlist()
     
     def get_by_email(self, email: str) -> Dict:
         """Get a specific candidate by email"""
-        shortlist = self._load_shortlist()
-        candidate = next((c for c in shortlist if c['email'] == email), None)
-        return candidate if candidate else {}
+        with self.lock:
+            shortlist = self._load_shortlist()
+            candidate = next((c for c in shortlist if c.get('email') == email), None)
+            return candidate if candidate else {}
     
     def update_status(self, candidate_email: str, new_status: str) -> Dict:
         """
@@ -121,16 +149,17 @@ class ShortlistManager:
         Returns:
             Success status
         """
-        shortlist = self._load_shortlist()
-        
-        for candidate in shortlist:
-            if candidate['email'] == candidate_email:
-                candidate['status'] = new_status
-                candidate['status_updated_at'] = datetime.now().isoformat()
-                self._save_shortlist(shortlist)
-                return {'success': True, 'message': f'Status updated to {new_status}'}
-        
-        return {'success': False, 'message': 'Candidate not found'}
+        with self.lock:
+            shortlist = self._load_shortlist()
+            
+            for candidate in shortlist:
+                if candidate['email'] == candidate_email:
+                    candidate['status'] = new_status
+                    candidate['status_updated_at'] = datetime.now().isoformat()
+                    self._save_shortlist(shortlist)
+                    return {'success': True, 'message': f'Status updated to {new_status}'}
+            
+            return {'success': False, 'message': 'Candidate not found'}
     
     def add_note(self, candidate_email: str, note: str) -> Dict:
         """
@@ -143,22 +172,23 @@ class ShortlistManager:
         Returns:
             Success status
         """
-        shortlist = self._load_shortlist()
-        
-        for candidate in shortlist:
-            if candidate['email'] == candidate_email:
-                if 'notes' not in candidate:
-                    candidate['notes'] = []
-                
-                candidate['notes'].append({
-                    'text': note,
-                    'added_at': datetime.now().isoformat()
-                })
-                
-                self._save_shortlist(shortlist)
-                return {'success': True, 'message': 'Note added successfully'}
-        
-        return {'success': False, 'message': 'Candidate not found'}
+        with self.lock:
+            shortlist = self._load_shortlist()
+            
+            for candidate in shortlist:
+                if candidate['email'] == candidate_email:
+                    if 'notes' not in candidate or not isinstance(candidate['notes'], list):
+                        candidate['notes'] = [] # Ensure notes is a list
+                    
+                    candidate['notes'].append({
+                        'text': note,
+                        'added_at': datetime.now().isoformat()
+                    })
+                    
+                    self._save_shortlist(shortlist)
+                    return {'success': True, 'message': 'Note added successfully'}
+            
+            return {'success': False, 'message': 'Candidate not found'}
     
     def get_statistics(self) -> Dict:
         """Get shortlist statistics"""
