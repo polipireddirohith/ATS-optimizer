@@ -13,9 +13,15 @@ from typing import Dict, List
 class ShortlistManager:
     """Manages candidate shortlisting with persistent storage"""
     
-    def __init__(self, storage_file='data/shortlisted_candidates.json'):
-        """Initialize shortlist manager"""
-        self.storage_file = storage_file
+    def __init__(self, storage_file=None):
+        """Initialize shortlist manager with absolute path"""
+        if storage_file:
+            self.storage_file = storage_file
+        else:
+            # Use absolute path relative to this file
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            self.storage_file = os.path.join(base_dir, 'data', 'shortlisted_candidates.json')
+            
         self._ensure_storage_exists()
     
     def _ensure_storage_exists(self):
@@ -23,6 +29,13 @@ class ShortlistManager:
         os.makedirs(os.path.dirname(self.storage_file), exist_ok=True)
         if not os.path.exists(self.storage_file):
             with open(self.storage_file, 'w') as f:
+                json.dump([], f)
+        # Verify file is valid JSON
+        try:
+            with open(self.storage_file, 'r') as f:
+                json.load(f)
+        except:
+             with open(self.storage_file, 'w') as f:
                 json.dump([], f)
     
     def add_candidate(self, candidate_data: Dict) -> Dict:
