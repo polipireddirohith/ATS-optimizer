@@ -656,6 +656,24 @@ class ATSEngine:
                 return text[max(0, idx-20):min(len(text), idx+30)].strip()
         
         return ''
+
+    def extract_years_of_experience(self, text: str) -> str:
+        """Extract mentioned years of experience from text using regex"""
+        # Look for explicit mentions like "5+ years", "3-5 years"
+        # Matches: "5+ years", "5 years", "5 - 7 years"
+        pattern_numeric = r'(\d+(?:\.\d+)?)\+?\s*(?:-|to)?\s*(\d+(?:\.\d+)?)?\s*years?'
+        match = re.search(pattern_numeric, text.lower())
+        if match:
+            return match.group(0).strip()
+            
+        # Look for word-based numbers (one to ten)
+        words = {'one': '1', 'two': '2', 'three': '3', 'four': '4', 'five': '5', 
+                 'six': '6', 'seven': '7', 'eight': '8', 'nine': '9', 'ten': '10'}
+        for word, num in words.items():
+            if f"{word} years" in text.lower() or f"{word}+ years" in text.lower():
+                return f"{num} years"
+                
+        return "Not mentioned"
     
     def _extract_summary(self, text: str) -> str:
         """Extract professional summary"""

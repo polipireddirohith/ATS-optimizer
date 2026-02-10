@@ -447,6 +447,13 @@
                     <div class="comparison-summary" style="margin-top: 1rem;">
 
                         <div class="summary-item">
+                            <div class="label">Experience</div>
+                            <div class="value" style="font-size: 0.9rem; line-height: 1.3; text-align: left; padding-left: 1rem;">
+                                <div style="color: var(--text-muted); font-size: 0.75rem;">Required: <strong style="color: var(--text-primary);">${candidate.jd_experience || 'Not specified'}</strong></div>
+                                <div style="margin-top: 0.2rem;">Actual: <strong style="color: var(--accent-teal);">${candidate.resume_experience || 'Not found'}</strong></div>
+                            </div>
+                        </div>
+                        <div class="summary-item">
                             <div class="label">Education</div>
                             <div class="value" style="color: ${candidate.education_match ? 'var(--accent-teal)' : '#ef4444'};">
                                 ${candidate.education_match ? '✓ Match' : '✗ No Match'}

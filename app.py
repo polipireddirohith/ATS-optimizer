@@ -282,6 +282,7 @@ def bulk_analyze_resumes():
         
         # Analyze job description once (same for all candidates)
         jd_data = ats_engine.analyze_job_description(jd_text)
+        jd_experience = ats_engine.extract_years_of_experience(jd_text)
         
         # Process each resume
         results = []
@@ -305,6 +306,7 @@ def bulk_analyze_resumes():
                 
                 # Parse resume
                 resume_text = doc_parser.parse_file(filepath)
+                resume_experience = ats_engine.extract_years_of_experience(resume_text[:2000]) # Scan first 2000 chars for summary
                 resume_data = ats_engine.parse_resume(resume_text)
                 
                 # Calculate scores
@@ -332,6 +334,8 @@ def bulk_analyze_resumes():
                     'missing_certifications': suitability['missing_certifications'],
                     'experience_summary': suitability['experience_summary'],
                     'breakdown': score_data['breakdown'],
+                    'jd_experience': jd_experience,
+                    'resume_experience': resume_experience,
                     'status': 'success'
                 })
                 
