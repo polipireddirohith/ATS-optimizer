@@ -581,11 +581,25 @@ def generate_sourcing():
                             role = role.split('|')[0].replace('LinkedIn', '').strip()
                             if len(role) > 50: role = role[:50] + '...'
                             
+                            # Extract skills from snippet
+                            snippet = item.get('snippet', '')
+                            combined_text = (title + " " + snippet).lower()
+                            candidate_skills = []
+                            for k in unique_keywords:
+                                if k.lower() in combined_text:
+                                    candidate_skills.append(k)
+                            
+                            # Fallback if no skills found in snippet (snippet might be short)
+                            if not candidate_skills:
+                                candidate_skills = unique_keywords[:3]
+                            else:
+                                candidate_skills = list(set(candidate_skills))[:5]
+
                             candidates_list.append({
                                 'name': name,
                                 'title': role,
                                 'match_score': 85 + (5 - len(candidates_list)), # Simple ranking
-                                'skills': unique_keywords[:3],
+                                'skills': candidate_skills,
                                 'profile_url': link
                             })
                             if len(candidates_list) >= 5: break
