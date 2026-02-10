@@ -45,7 +45,7 @@ class ShortlistManager:
             'email': candidate_data.get('email', ''),
             'phone': candidate_data.get('phone', ''),
             'total_score': candidate_data.get('total_score', 0),
-            'verdict': candidate_data.get('verdict', ''),
+            'verdict': "Recruiter Selected ✅" if any(x in candidate_data.get('verdict', '') for x in ['Not Visible', 'Low Match', 'Rejected']) else candidate_data.get('verdict', ''),
             'matched_skills': candidate_data.get('matched_skills', []),
             'missing_skills': candidate_data.get('missing_skills', []),
             'education_match': candidate_data.get('education_match', False),
