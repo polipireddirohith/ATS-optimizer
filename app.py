@@ -534,10 +534,11 @@ def generate_sourcing():
         
         links = []
         platforms = [
-            ('LinkedIn', f'site:linkedin.com/in/ {keyword_str}'),
+            ('LinkedIn', f'site:linkedin.com/in/ {keyword_str} -inurl:dir -inurl:jobs -intitle:profiles'),
+            ('LinkedIn (Active Seekers)', f'site:linkedin.com/in/ {keyword_str} ("Open to work" OR "Looking for" OR "Seeking" OR "Immediate")'),
             ('GitHub', f'site:github.com {keyword_str}'),
             ('Indeed Resumes', f'(site:indeed.com/r/ OR site:indeed.co.in/r/) {keyword_str}'),
-            ('Naukri', f'site:naukri.com {keyword_str} -inurl:job-listings -intitle:jobs -intitle:vacancies'),
+            ('Naukri Profiles', f'site:naukri.com {keyword_str} ("Resume" OR "CV" OR "Profile") -inurl:job-listings -intitle:jobs -intitle:vacancies'),
             ('StackOverflow', f'site:stackoverflow.com/users {keyword_str}')
         ]
         
