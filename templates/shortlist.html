@@ -535,20 +535,23 @@
             }
 
             // Define headers
-            const headers = ["Candidate Name", "Email", "Phone", "Total Score", "Status", "Verdict", "Recruiter", "Matched Skills", "Missing Skills", "Shortlisted Date"];
+            // Define headers
+            const headers = ["Candidate Name", "Email", "Phone", "Total Score", "Status", "Verdict", "Recruiter", "Matched Skills", "Missing Skills", "Date"];
 
             // Map rows
             const rows = currentShortlist.map(c => [
                 c.candidate_name || "Unknown",
                 c.email || "N/A",
-                c.phone || "N/A",
+                // Force Excel to treat phone as text using ="value" syntax
+                c.phone ? `="${c.phone}"` : "N/A",
                 Math.round(c.total_score || 0),
                 c.status || "Shortlisted",
                 c.verdict || "N/A",
                 c.recruiter_name || "System",
                 (Array.isArray(c.matched_skills) ? c.matched_skills.join("; ") : ""),
                 (Array.isArray(c.missing_skills) ? c.missing_skills.join("; ") : ""),
-                new Date(c.shortlisted_at || Date.now()).toLocaleDateString()
+                // Grab date from device and local time
+                new Date().toLocaleString()
             ]);
 
             // Convert to CSV
