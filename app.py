@@ -553,7 +553,7 @@ def generate_sourcing():
             if requests:
                 try:
                     # Targeted Query for LinkedIn Profiles
-                    search_query = f'site:linkedin.com/in/ {keyword_str}'
+                    search_query = f'site:linkedin.com/in/ {keyword_str} -inurl:dir -inurl:jobs -intitle:profiles'
                     # Use params for safer encoding
                     params = {
                         'key': api_key,
