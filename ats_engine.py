@@ -258,10 +258,10 @@ class ATSEngine:
             else:
                 recommendation = "Solid foundation. Needs specific keywords to cross the threshold. 📈"
         else:
-            # Hidden: < 70 - HR should NOT see this candidate
-            verdict = "Not Visible to Recruiter"
-            color = "#6b7280"
-            recommendation = "This candidate does not meet the minimum ATS threshold and will not appear in the recruiter's dashboard."
+            # Low Score: < 70
+            verdict = "Low Match (Rejected)"
+            color = "#ef4444" # Red
+            recommendation = "Score is below 70%. ATS suggests rejection, but you can review manually if needed."
             
         # Recruiter Insights
         insights = []
