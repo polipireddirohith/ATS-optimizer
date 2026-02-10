@@ -537,6 +537,7 @@ def generate_sourcing():
             ('LinkedIn', f'site:linkedin.com/in/ {keyword_str}'),
             ('GitHub', f'site:github.com {keyword_str}'),
             ('Indeed Resumes', f'(site:indeed.com/r/ OR site:indeed.co.in/r/) {keyword_str}'),
+            ('Naukri', f'site:naukri.com {keyword_str} -inurl:job-listings -intitle:jobs -intitle:vacancies'),
             ('StackOverflow', f'site:stackoverflow.com/users {keyword_str}')
         ]
         
