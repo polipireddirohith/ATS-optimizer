@@ -246,6 +246,33 @@
                     </td>
                 </tr>
             `).join('');
+
+        }
+
+        // Auto-Save/Load API Key
+        const apiKeyInput = document.getElementById('apiKey');
+        const cxIdInput = document.getElementById('cxId');
+
+        if (apiKeyInput && cxIdInput) {
+            // Load on startup
+            const storedKey = localStorage.getItem('google_api_key');
+            const storedCx = localStorage.getItem('google_cx_id');
+            if (storedKey) apiKeyInput.value = storedKey;
+            // Default CX ID if not set, or load stored
+            if (storedCx) {
+                cxIdInput.value = storedCx;
+            } else {
+                // Pre-fill with the known working ID if empty
+                cxIdInput.value = '932c5f43d8668495e';
+            }
+
+            // Save on change
+            apiKeyInput.addEventListener('change', () => {
+                localStorage.setItem('google_api_key', apiKeyInput.value);
+            });
+            cxIdInput.addEventListener('change', () => {
+                localStorage.setItem('google_cx_id', cxIdInput.value);
+            });
         }
     </script>
 </body>
