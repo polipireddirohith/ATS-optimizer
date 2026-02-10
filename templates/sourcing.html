@@ -165,6 +165,10 @@
             const apiKey = document.getElementById('apiKey').value || '';
             const cxId = document.getElementById('cxId').value || '';
 
+            // Force Save Keys on Click
+            if (apiKey) localStorage.setItem('google_api_key', apiKey);
+            if (cxId) localStorage.setItem('google_cx_id', cxId);
+
             if (!jdText) return alert("Please enter a Job Description.");
 
             document.getElementById('loadingIndicator').style.display = 'flex';
@@ -266,11 +270,11 @@
                 cxIdInput.value = '932c5f43d8668495e';
             }
 
-            // Save on change
-            apiKeyInput.addEventListener('change', () => {
+            // Save on input (real-time)
+            apiKeyInput.addEventListener('input', () => {
                 localStorage.setItem('google_api_key', apiKeyInput.value);
             });
-            cxIdInput.addEventListener('change', () => {
+            cxIdInput.addEventListener('input', () => {
                 localStorage.setItem('google_cx_id', cxIdInput.value);
             });
         }
