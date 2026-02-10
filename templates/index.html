@@ -334,6 +334,14 @@
         </main>
     </div>
 
+    <script>
+        // Automatic Credentials from Company Portal
+        {% if current_user %}
+        window.ATS_USER = "{{ current_user }}";
+        localStorage.setItem('ats_recruiter_name', "{{ current_user }}");
+        console.log("ATS User Detected:", window.ATS_USER);
+        {% endif %}
+    </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 

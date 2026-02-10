@@ -98,6 +98,20 @@ def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 
+@app.context_processor
+def inject_user():
+    """Inject user identity from headers or query params for portal integration"""
+    # Check headers (typical for enterprise SSO/Gateway)
+    user = request.headers.get('X-User-Name') or request.headers.get('X-Remote-User')
+    # Fallback to query params for simple embedding (e.g. iframe?user=John)
+    if not user:
+        user = request.args.get('user')
+    
+    role = request.headers.get('X-User-Role') or request.args.get('role')
+    
+    return dict(current_user=user, current_role=role)
+
+
 @app.route('/')
 def index():
     """Render main page"""

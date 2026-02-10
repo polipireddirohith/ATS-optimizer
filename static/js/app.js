@@ -655,18 +655,22 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             // Add to shortlist
             try {
-                let storedName = localStorage.getItem('ats_recruiter_name') || '';
-                let recruiterName = prompt("Processing Shortlist. Confirm Recruiter Name:", storedName);
+                let recruiterName;
 
-                if (recruiterName) {
+                if (window.ATS_USER) {
+                    recruiterName = window.ATS_USER;
                     localStorage.setItem('ats_recruiter_name', recruiterName);
                 } else {
-                    // If user cancels but has stored name, use it. If no stored name, use Anonymous.
-                    // But usually cancel means abort? 
-                    // Let's assume if they cancel, they might not want to shortlist?
-                    // Standard prompt returns null on cancel.
-                    if (recruiterName === null) return; // Abort if cancelled
-                    recruiterName = storedName || 'Anonymous Recruiter';
+                    let storedName = localStorage.getItem('ats_recruiter_name') || '';
+                    let recruiterNameInput = prompt("Processing Shortlist. Confirm Recruiter Name:", storedName);
+
+                    if (recruiterNameInput) {
+                        recruiterName = recruiterNameInput;
+                        localStorage.setItem('ats_recruiter_name', recruiterName);
+                    } else {
+                        if (recruiterNameInput === null) return; // Abort if cancelled
+                        recruiterName = storedName || 'Anonymous Recruiter';
+                    }
                 }
 
                 const candidateData = {
