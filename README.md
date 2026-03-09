@@ -1,10 +1,4 @@
-# 🚀 ATS Resume Optimizer & Scoring Engine
 
-A world-class, AI-powered ATS (Applicant Tracking System) Resume Scoring and Optimization platform. Built with a premium, enterprise-grade UI, this tool helps job seekers pass automated filters and provides HR teams with deep recruiter insights.
-
-![GitHub License](https://img.shields.io/github/license/username/repo)
-![Python Version](https://img.shields.io/badge/python-3.8%2B-blue)
-![Framework](https://img.shields.io/badge/framework-Flask-lightgrey)
 
 ## ✨ Features
 
@@ -53,7 +47,7 @@ A world-class, AI-powered ATS (Applicant Tracking System) Resume Scoring and Opt
 
 ## 🌐 Deployment
 
-This app is ready for deployment on platforms like **Render**, **Heroku**, or **Railway**.
+This app is ready for deployment on platforms like **Render**
 
 - **Procfile**: Included for Gunicorn production server.
 - **Runtime**: Configured for standard Python environments.
@@ -62,7 +56,4 @@ This app is ready for deployment on platforms like **Render**, **Heroku**, or **
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
 
-- Inspired by high-end SaaS designs (Stripe/Linear/Notion).
-- Built with focus on both candidate optimization and HR efficiency.
