@@ -293,10 +293,11 @@
     </div>
 
     <script>
-        {% if current_user %}
-        window.ATS_USER = "{{ current_user }}";
-        localStorage.setItem('ats_recruiter_name', "{{ current_user }}");
-        {% endif %}
+        const isUserActive = "{{ 'true' if current_user else 'false' }}" === "true";
+        if (isUserActive) {
+            window.ATS_USER = "{{ current_user|default('') }}";
+            localStorage.setItem('ats_recruiter_name', window.ATS_USER);
+        }
 
         const dropZone = document.getElementById('dropZone');
         const resumeFiles = document.getElementById('resumeFiles');

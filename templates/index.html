@@ -336,11 +336,12 @@
 
     <script>
         // Automatic Credentials from Company Portal
-        {% if current_user %}
-        window.ATS_USER = "{{ current_user }}";
-        localStorage.setItem('ats_recruiter_name', "{{ current_user }}");
-        console.log("ATS User Detected:", window.ATS_USER);
-        {% endif %}
+        const isUserActive = "{{ 'true' if current_user else 'false' }}" === "true";
+        if (isUserActive) {
+            window.ATS_USER = "{{ current_user|default('') }}";
+            localStorage.setItem('ats_recruiter_name', window.ATS_USER);
+            console.log("ATS User Detected:", window.ATS_USER);
+        }
     </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>

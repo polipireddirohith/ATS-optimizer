@@ -188,9 +188,9 @@
                 <h1 style="font-size: 2.5rem; margin: 0;">⭐ Shortlisted Candidates</h1>
                 <p style="color: var(--text-muted); margin-top: 0.5rem;">Manage your top candidates</p>
             </div>
-            <button onclick="exportToCSV()"
+            <button onclick="exportToCSV()" title="Download complete database across all recruiters"
                 style="padding: 0.8rem 1.5rem; background: #22c55e; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: transform 0.2s;">
-                <span>📥</span> Export to Excel
+                <span>📥</span> Export Master List
             </button>
         </div>
 
@@ -211,7 +211,7 @@
 
         <div style="margin-bottom: 1rem; display: flex; justify-content: flex-end; align-items: center; gap: 1rem;">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="color: var(--text-muted); font-size: 0.9rem;">👤 Filter by Recruiter:</span>
+                <span style="color: var(--text-muted); font-size: 0.9rem;">👤 Filter View (Export includes all):</span>
                 <select id="recruiterFilter"
                     style="padding: 0.4rem 0.8rem; border-radius: 6px; border: 1px solid var(--border-color); background: var(--bg-card); color: var(--text-primary); min-width: 150px;">
                     <option value="all">All Recruiters</option>
@@ -565,7 +565,8 @@
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
             link.setAttribute("href", url);
-            link.setAttribute("download", `shortlisted_candidates_${new Date().toISOString().slice(0, 10)}.csv`);
+            const dateStr = new Date().toISOString().slice(0, 10);
+            link.setAttribute("download", `ATS_Master_Shortlist_${dateStr}.csv`);
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();

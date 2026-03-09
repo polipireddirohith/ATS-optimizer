@@ -1,0 +1,35 @@
+[
+  {
+    "id": "SL-20260210014818",
+    "shortlisted_at": "2026-02-10T01:48:18.038988",
+    "candidate_name": "POLIPIREDDI ROHITH KUMAR",
+    "email": "p.rohithkumar001@gmail.com",
+    "phone": "9032296766",
+    "total_score": 42.01,
+    "verdict": "Not Visible to Recruiter",
+    "matched_skills": [
+      "java",
+      "scikit-learn",
+      "ml",
+      "tensorflow",
+      "keras",
+      "ai",
+      "machine learning",
+      "python"
+    ],
+    "missing_skills": [
+      "pytorch",
+      "deep learning",
+      "strategy",
+      "nosql",
+      "nlp",
+      "teams",
+      "leadership"
+    ],
+    "education_match": true,
+    "matched_certifications": [],
+    "job_title": "Current Analysis",
+    "notes": "",
+    "status": "shortlisted"
+  }
+]
